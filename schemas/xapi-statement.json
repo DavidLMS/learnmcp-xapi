@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "object",
+      "properties": {
+        "objectType": {
+          "type": "string",
+          "enum": ["Agent"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "mbox": {
+          "type": "string",
+          "format": "email"
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "homePage": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["homePage", "name"],
+          "additionalProperties": false
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["mbox"]
+        },
+        {
+          "required": ["account"]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "verb": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri"
+        },
+        "display": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3})?(-[a-zA-Z]{4})?(-[a-zA-Z]{2}|[0-9]{3})?(-[a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3})*$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": false
+    },
+    "object": {
+      "type": "object",
+      "properties": {
+        "objectType": {
+          "enum": ["Activity", "Agent", "Group", "SubStatement", "StatementRef"]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["id"]
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "object",
+          "properties": {
+            "scaled": {
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "raw": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "completion": {
+          "type": "boolean"
+        },
+        "response": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "extensions": {
+          "type": "object",
+          "patternProperties": {
+            "^https?://": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "registration": {
+          "type": "string"
+        },
+        "instructor": {
+          "type": "object"
+        },
+        "team": {
+          "type": "object"
+        },
+        "contextActivities": {
+          "type": "object"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "object"
+        },
+        "extensions": {
+          "type": "object",
+          "patternProperties": {
+            "^https?://": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "stored": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "authority": {
+      "type": "object"
+    },
+    "version": {
+      "type": "string"
+    },
+    "attachments": {
+      "type": "array"
+    }
+  },
+  "required": ["actor", "verb", "object"],
+  "additionalProperties": false
+}
