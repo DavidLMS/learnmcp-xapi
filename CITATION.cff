@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Romero Santos"
+  given-names: "David"
+title: "LearnMCP-xAPI: MCP server for xAPI Learning Record Store integration"
+date-released: 2025-05-25
+url: "https://github.com/DavidLMS/learnmcp-xapi"
+repository-code: "https://github.com/DavidLMS/learnmcp-xapi"
+abstract: "MCP (Model Context Protocol) server for xAPI Learning Record Store integration with simple configuration. Enables AI-powered learning analytics by connecting MCP clients to any xAPI 1.0.3 compliant LRS."
+keywords:
+  - xapi
+  - learning-record-store
+  - model-context-protocol
+  - mcp
+  - learning-analytics
+  - educational-technology
+  - ai-education
+license: MIT
+version: "1.0.0"
