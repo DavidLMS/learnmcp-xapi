@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Union
 
 from fastapi import HTTPException, status
+from jsonschema import ValidationError
 
 from ..verbs import get_verb, list_verbs
 from .validator import validate_xapi_statement, is_valid_iri
@@ -169,16 +170,16 @@ async def record_statement(
     # Log the statement before sending to LRS
     logger.info("Generated xAPI statement: %s", json.dumps(statement, indent=2))
     
-    # Validate against xAPI schema (temporarily disabled for debugging)
-    # try:
-    #     validate_xapi_statement(statement)
-    # except ValidationError as e:
-    #     logger.error("Statement validation failed: %s", e.message)
-    #     logger.error("Statement that failed validation: %s", json.dumps(statement, indent=2))
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail=f"Invalid xAPI statement: {e.message}"
-    #     )
+    # Validate against xAPI schema
+    try:
+        validate_xapi_statement(statement)
+    except ValidationError as e:
+        logger.error("Statement validation failed: %s", e.message)
+        logger.error("Statement that failed validation: %s", json.dumps(statement, indent=2))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid xAPI statement: {e.message}"
+        )
     
     # Send to LRS
     client = get_lrs_client()

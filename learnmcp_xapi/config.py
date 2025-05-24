@@ -1,7 +1,6 @@
 """Configuration management for learnmcp-xapi."""
 
 import os
-from typing import Optional
 from pathlib import Path
 
 # Load .env file if it exists
