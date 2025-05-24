@@ -4,12 +4,11 @@ services:
   learnmcp-xapi:
     build: .
     environment:
+      - ENV=${ENV:-development}
       - LRS_ENDPOINT=${LRS_ENDPOINT}
       - LRS_KEY=${LRS_KEY}
       - LRS_SECRET=${LRS_SECRET}
-      - JWT_ALGORITHM=${JWT_ALGORITHM:-RS256}
-      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+      - ACTOR_UUID=${ACTOR_UUID}
       - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-30}
       - MAX_BODY_SIZE=${MAX_BODY_SIZE:-16384}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}

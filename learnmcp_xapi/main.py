@@ -1,9 +1,12 @@
-"""learnmcp-xapi main application."""
+"""learnmcp-xapi main application - MCP Server with simple actor UUID configuration."""
 
 import logging
 from typing import Dict, List, Any, Optional, Union
 
 from fastmcp import FastMCP
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from .config import config
 from .mcp.core import record_statement, get_statements, get_available_verbs
@@ -40,9 +43,8 @@ async def record_xapi_statement(
     Returns:
         LRS response with statement ID
     """
-    # For MCP tools, we'll use a fixed actor UUID for now
-    # In production, this would come from the MCP client authentication
-    actor_uuid = "demo-user-12345"
+    # Use actor UUID from client configuration
+    actor_uuid = config.ACTOR_UUID
     
     return await record_statement(
         actor_uuid=actor_uuid,
@@ -61,7 +63,7 @@ async def get_xapi_statements(
     until: Optional[str] = None,
     limit: int = 50
 ) -> List[Dict[str, Any]]:
-    """Retrieve xAPI statements for the authenticated actor.
+    """Retrieve xAPI statements for the configured actor.
     
     Args:
         verb: Verb alias to filter by, optional
@@ -73,8 +75,8 @@ async def get_xapi_statements(
     Returns:
         List of xAPI statements ordered by timestamp desc
     """
-    # For MCP tools, we'll use a fixed actor UUID for now
-    actor_uuid = "demo-user-12345"
+    # Use actor UUID from client configuration
+    actor_uuid = config.ACTOR_UUID
     
     return await get_statements(
         actor_uuid=actor_uuid,
@@ -94,6 +96,23 @@ async def list_available_verbs() -> Dict[str, str]:
         Dict mapping verb alias to URI
     """
     return get_available_verbs()
+
+
+# Add health check endpoint
+async def health_check(request):
+    """Health check endpoint for monitoring."""
+    return JSONResponse({
+        "status": "healthy",
+        "version": "1.0.0",
+        "actor_uuid": config.ACTOR_UUID,
+        "environment": config.ENV
+    })
+
+
+# Get underlying Starlette app and add health route
+app: Starlette = mcp.sse_app()
+health_route = Route("/health", health_check, methods=["GET"])
+app.routes.append(health_route)
 
 
 if __name__ == "__main__":

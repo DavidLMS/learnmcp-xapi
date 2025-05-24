@@ -1,15 +1,16 @@
-# LearnMCP-xAPI
+# learnmcp-xapi v1.0
 
-MCP proxy server for xAPI Learning Record Store integration.
+MCP (Model Context Protocol) server for xAPI Learning Record Store integration with simple configuration.
 
 ## Features
 
 - **xAPI 1.0.3 compliant** statement recording and retrieval
-- **JWT authentication** with RS256/HS256 support
+- **Simple configuration** with unique actor UUID per client
+- **LRS security** via API key authentication
 - **Rate limiting** (30 requests/minute per IP)
-- **Privacy by design** (hashed actor UUIDs in logs)
+- **Privacy by design** (configurable actor UUID)
 - **LRS retry logic** with exponential backoff
-- **FastMCP integration** for easy LLM tool integration
+- **MCP tools** for seamless LLM integration
 
 ## Quick Start
 
@@ -23,22 +24,36 @@ MCP proxy server for xAPI Learning Record Store integration.
 2. **Configure environment**:
    ```bash
    cp .env.example .env
-   # Edit .env with your LRS and JWT settings
+   # Edit .env with your LRS settings and unique ACTOR_UUID
    ```
 
-3. **Run locally**:
+3. **Run the server**:
    ```bash
    python -m learnmcp_xapi.main
    ```
+   
+   The server will start as an MCP server with:
+   - Health check at http://localhost:8000/health
+   - MCP tools accessible via MCP protocol
 
 4. **Test the server**:
-   The server runs as an MCP server and will be accessible to Claude Desktop when properly configured (see below).
+   ```bash
+   # Health check
+   curl http://localhost:8000/health
+   
+   # For MCP tool testing, use Claude Desktop
+   # See "Connecting to Claude Desktop" section below
+   ```
 
 ## MCP Tools
 
 - `record_xapi_statement` - Record learning evidence
-- `get_xapi_statements` - Retrieve actor's statements  
+- `get_xapi_statements` - Retrieve actor's statements
 - `list_available_verbs` - Get available verb aliases
+
+## Additional Endpoints
+
+- `GET /health` - Health check endpoint
 
 ## Testing
 
@@ -46,11 +61,19 @@ MCP proxy server for xAPI Learning Record Store integration.
 pytest -q
 ```
 
-## Docker
+## Docker Deployment
 
 ```bash
+# Build image
 docker build -t learnmcp-xapi:1.0 .
-docker run -it --env-file .env learnmcp-xapi:1.0
+
+# Run with environment variables
+docker run -p 8000:8000 \
+  -e LRS_ENDPOINT=http://localhost:8080 \
+  -e LRS_KEY=your-lrs-key \
+  -e LRS_SECRET=your-lrs-secret \
+  -e ACTOR_UUID=student-unique-id-here \
+  learnmcp-xapi:1.0
 ```
 
 ## LRS Setup Example: LRSQL
@@ -81,20 +104,21 @@ cd lrsql-1.2.17-standalone
 Update your `.env` file:
 
 ```env
+ENV=development
 LRS_ENDPOINT=http://localhost:8080
 LRS_KEY=your-api-key-here
 LRS_SECRET=your-api-secret-here
-JWT_ALGORITHM=HS256
-JWT_SECRET=test-secret-key-for-development
+ACTOR_UUID=student-alice-12345
 ```
 
 ### 4. Test Integration
 
 1. **Start LRSQL** (see setup above)
 2. **Start learnmcp-xapi**: `python -m learnmcp_xapi.main`  
-3. **Configure Claude Desktop** with the JSON above
-4. **Restart Claude Desktop**
-5. **Test in Claude**: Ask Claude to "Record that I practiced Linear Algebra with level 2"
+3. **Configure Claude Desktop** (see below)
+4. **Test via Claude Desktop**:
+   - Ask Claude: "Record that I practiced Linear Algebra with level 2"
+   - Claude will use the MCP tools to record the statement
 
 The statement should appear in LRSQL's web interface under "Statements".
 
@@ -114,8 +138,6 @@ See `.env.example` for all available environment variables.
 
 ## Connecting to Claude Desktop
 
-To use this MCP server with Claude Desktop app:
-
 ### 1. Locate Claude Desktop Config
 
 Find your Claude Desktop configuration file:
@@ -124,151 +146,195 @@ Find your Claude Desktop configuration file:
 
 ### 2. Add MCP Server Configuration
 
-Edit the config file to include the learnmcp-xapi server. **Important**: Use the absolute path to your Python executable and project directory:
-
-**Option 1: Using the run_server.py script (Recommended)**
+Edit the config file to include the learnmcp-xapi server:
 
 ```json
 {
   "mcpServers": {
     "learnmcp-xapi": {
-      "command": "/path/to/your/python",
+      "command": "/absolute/path/to/python",
       "args": [
         "/absolute/path/to/learnmcp-xapi/run_server.py"
       ],
       "env": {
+        "ENV": "development",
         "LRS_ENDPOINT": "http://localhost:8080",
-        "LRS_KEY": "your-api-key-here",
-        "LRS_SECRET": "your-api-secret-here",
-        "JWT_ALGORITHM": "HS256",
-        "JWT_SECRET": "test-secret-key-for-development"
+        "LRS_KEY": "your-lrsql-api-key",
+        "LRS_SECRET": "your-lrsql-api-secret",
+        "ACTOR_UUID": "student-alice-12345",
+        "LOG_LEVEL": "INFO"
       }
     }
   }
 }
 ```
 
-**Option 2: Using module import**
-
-```json
-{
-  "mcpServers": {
-    "learnmcp-xapi": {
-      "command": "/path/to/your/python",
-      "args": [
-        "-m", "learnmcp_xapi.main"
-      ],
-      "cwd": "/absolute/path/to/learnmcp-xapi",
-      "env": {
-        "PYTHONPATH": "/absolute/path/to/learnmcp-xapi",
-        "LRS_ENDPOINT": "http://localhost:8080",
-        "LRS_KEY": "your-api-key-here",
-        "LRS_SECRET": "your-api-secret-here",
-        "JWT_ALGORITHM": "HS256",
-        "JWT_SECRET": "test-secret-key-for-development"
-      }
-    }
-  }
-}
-```
+**Important**: Each student should use a **unique ACTOR_UUID** in their configuration. This UUID identifies the student in the learning records.
 
 **How to find your paths:**
-
-**macOS/Linux:**
-- **Python path**: `which python3` or `which python`
+- **Python path**: `which python3` (macOS/Linux) or `where python` (Windows)
 - **Project path**: `pwd` inside the learnmcp-xapi directory
-- **Common Python locations**:
-  - Homebrew (macOS): `/opt/homebrew/bin/python3`
-  - Anaconda: `/Users/username/anaconda3/bin/python`
-  - System: `/usr/bin/python3`
 
-**Windows:**
-- **Python path**: `where python` in Command Prompt
-- **Project path**: `cd` to learnmcp-xapi folder, then `echo %cd%`
-- **Common Python locations**:
-  - Anaconda: `C:\Users\username\anaconda3\python.exe`
-  - Python.org: `C:\Users\username\AppData\Local\Programs\Python\Python311\python.exe`
-  - Microsoft Store: `C:\Users\username\AppData\Local\Microsoft\WindowsApps\python.exe`
+### 3. Testing the Connection
 
-**Example for Windows:**
-```json
-{
-  "mcpServers": {
-    "learnmcp-xapi": {
-      "command": "C:\\Users\\username\\anaconda3\\python.exe",
-      "args": [
-        "C:\\path\\to\\learnmcp-xapi\\run_server.py"
-      ],
-      "env": {
-        "LRS_ENDPOINT": "http://localhost:8080",
-        "LRS_KEY": "your-api-key-here",
-        "LRS_SECRET": "your-api-secret-here",
-        "JWT_ALGORITHM": "HS256",
-        "JWT_SECRET": "test-secret-key-for-development"
-      }
-    }
-  }
-}
-```
+1. **Start your LRS** (e.g., LRSQL on port 8080)
+2. **Start learnmcp-xapi server**: `python -m learnmcp_xapi.main`
+3. **Restart Claude Desktop** after config changes
+4. **Look for the 🔨 hammer icon** in Claude Desktop's input area
+5. **Test the tools**:
+   - "List available learning verbs"
+   - "Record that I practiced Python with level 2"
 
-### 3. Restart Claude Desktop
-
-1. **Quit** Claude Desktop completely
-2. **Restart** the application
-3. Look for the **🔨 hammer icon** in the input area
-
-### 4. Test the Connection
-
-1. **Look for the hammer icon** 🔨 in Claude Desktop's input area
-2. **Test with a simple request**: "List available learning verbs"
-3. **Record a learning activity**: "Record that I achieved mastery of Linear Algebra with level 3"
-
-**Example conversation:**
-```
-You: List the available learning verbs
-Claude: [Uses list_available_verbs tool to show: experienced, practiced, achieved, mastered]
-
-You: Record that I achieved mastery of Python basics with level 3
-Claude: [Uses record_xapi_statement tool] I've successfully recorded your achievement of Python basics with mastery level 3 in the learning record store.
-```
-
-The statement should appear in LRSQL's web interface under "Statements" at `http://localhost:8080/admin/ui/browser`.
-
-### Available Tools in Claude
+### 4. Available Tools in Claude
 
 Once connected, Claude will have access to:
 
 - **📝 record_xapi_statement**: Log learning activities and achievements
-- **📊 get_xapi_statements**: Retrieve your learning history  
+  - Params: verb, object_id, level (optional), extras (optional)
+  
+- **📊 get_xapi_statements**: Retrieve your learning history
+  - Params: verb, object_id, since, until, limit (all optional)
+  
 - **📋 list_available_verbs**: See available learning verbs
+  - Returns: {"experienced": "http://...", "practiced": "http://...", ...}
 
-### Troubleshooting
+### 5. Multiple Students Setup
 
-#### Common Issues
+Each student should have their own unique configuration:
+
+**Student Alice:**
+```json
+{
+  "env": {
+    "ACTOR_UUID": "student-alice-12345",
+    "LRS_ENDPOINT": "https://school.edu/lrs"
+  }
+}
+```
+
+**Student Bob:**
+```json
+{
+  "env": {
+    "ACTOR_UUID": "student-bob-67890",
+    "LRS_ENDPOINT": "https://school.edu/lrs"
+  }
+}
+```
+
+This way, each student's learning activities are tracked separately in the same LRS.
+
+### 6. Troubleshooting
 
 **No 🔨 hammer icon appears:**
-- Verify JSON syntax in `claude_desktop_config.json` is valid
-- Use absolute paths for `command` and file paths (no `~` or relative paths)
-- Ensure Python dependencies are installed: `pip install -r requirements.txt`
-- Check Python path with `which python` or `which python3`
+- Verify JSON syntax in claude_desktop_config.json
+- Use absolute paths (no ~ or relative paths)
+- Check Python path: `which python3`
+- Ensure dependencies installed: `pip install -r requirements.txt`
 
-**"spawn python ENOENT" error:**
-- Use full path to Python executable (e.g., `/usr/bin/python3`)
-- Don't use just `python` - specify the complete path
-
-**"ModuleNotFoundError: No module named 'learnmcp_xapi'":**
-- Use Option 1 with `run_server.py` script (recommended)
-- Or add `PYTHONPATH` environment variable as shown in Option 2
-
-**"LRS unavailable" error:**
-- Verify LRSQL is running on `http://localhost:8080`
-- Check API credentials are correct in LRSQL admin interface
-- Test endpoint: `curl -u "key:secret" http://localhost:8080/xapi/statements`
-
-**Connection issues:**
+**"ACTOR_UUID is required" error:**
+- Make sure ACTOR_UUID is set in your Claude Desktop config
+- Use a unique identifier for each student
 - Restart Claude Desktop after config changes
-- Check logs: `~/Library/Logs/Claude/mcp.log` (macOS) or `%APPDATA%\Claude\logs\mcp.log` (Windows)
-- Verify LRS is running and accessible
+
+**"LRS unavailable" errors:**
+- Verify LRS is running (LRSQL: http://localhost:8080)
+- Check LRS_KEY and LRS_SECRET are correct
+- Test LRS directly: `curl -u "key:secret" http://localhost:8080/xAPI/statements`
+
+**Configuration issues:**
+- Check server logs for startup errors
+- Verify health endpoint: `curl http://localhost:8000/health`
+- Check Claude logs: `~/Library/Logs/Claude/mcp.log` (macOS)
+
+## Security Model
+
+### How Student Identity Works
+
+1. **Physical Isolation**: Each student runs Claude Desktop on their own device
+2. **Local Configuration**: Each student sets their unique ACTOR_UUID in their local config
+3. **LRS Protection**: The LRS is protected by API keys and HTTPS
+4. **Statement Tracking**: Each statement is tagged with the student's ACTOR_UUID
+
+### Security Benefits
+
+- ✅ **No shared secrets**: No JWT tokens to manage or expire
+- ✅ **Simple setup**: Just configure ACTOR_UUID per student
+- ✅ **LRS security**: Existing LRS authentication protects the data
+- ✅ **Audit trail**: Each statement clearly identifies the student
+- ✅ **Self-contained**: Each student's setup is independent
+
+### Production Recommendations
+
+- Use **HTTPS** for LRS_ENDPOINT in production
+- Use **unique ACTOR_UUIDs** for each student (e.g., student ID numbers)
+- Configure **strong LRS credentials** and rotate them regularly
+- Monitor **LRS access logs** for unusual activity
+- Use **institutional LRS** rather than local development setup
+
+## Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ENV` | No | `development` | Environment (development/production) |
+| `LRS_ENDPOINT` | Yes | - | LRS base URL (use HTTPS in production) |
+| `LRS_KEY` | Yes | - | LRS API key |
+| `LRS_SECRET` | Yes | - | LRS API secret |
+| `ACTOR_UUID` | Yes | - | Unique student identifier |
+| `RATE_LIMIT_PER_MINUTE` | No | `30` | Requests per minute per IP |
+| `MAX_BODY_SIZE` | No | `16384` | Max request body size (bytes) |
+| `LOG_LEVEL` | No | `INFO` | Logging level |
+
+## Integration with MCP Clients
+
+This MCP server can be integrated with any MCP-compatible client:
+
+- **Claude Desktop** (recommended)
+- **Custom MCP clients**
+- **Educational platforms** using MCP protocol
+- **AI tutoring systems** via MCP
+
+**MCP Client Requirements:**
+1. Support MCP protocol (SSE + JSON-RPC)
+2. Set unique ACTOR_UUID in environment configuration
+3. Handle MCP tool call/response format
+4. Support async tool execution
+
+## Production Deployment
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  learnmcp-xapi:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - LRS_ENDPOINT=https://your-production-lrs.com
+      - LRS_KEY=${LRS_KEY}
+      - LRS_SECRET=${LRS_SECRET}
+      - ACTOR_UUID=${ACTOR_UUID}
+    restart: unless-stopped
+```
+
+### Environment-Specific Setup
+
+**Development:**
+```bash
+export ENV=development
+export LRS_ENDPOINT=http://localhost:8080
+export ACTOR_UUID=dev-student-12345
+```
+
+**Production:**
+```bash
+export ENV=production
+export LRS_ENDPOINT=https://lrs.school.edu
+export ACTOR_UUID=student-alice-institutional-id
+```
 
 ## License
 

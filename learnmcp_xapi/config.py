@@ -20,18 +20,21 @@ class Config:
     
     def __init__(self) -> None:
         """Initialize configuration from environment variables."""
+        # LRS Configuration
         self.LRS_ENDPOINT: str = os.getenv("LRS_ENDPOINT", "")
         self.LRS_KEY: str = os.getenv("LRS_KEY", "")
         self.LRS_SECRET: str = os.getenv("LRS_SECRET", "")
         
-        self.JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "RS256")
-        self.JWT_PUBLIC_KEY: Optional[str] = os.getenv("JWT_PUBLIC_KEY")
-        self.JWT_SECRET: Optional[str] = os.getenv("JWT_SECRET")
+        # Actor Configuration - each client sets their own UUID
+        self.ACTOR_UUID: str = os.getenv("ACTOR_UUID", "")
         
+        # Optional Configuration
         self.RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
         self.MAX_BODY_SIZE: int = int(os.getenv("MAX_BODY_SIZE", "16384"))  # 16 KiB
-        
         self.LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+        
+        # Environment
+        self.ENV: str = os.getenv("ENV", "development")
     
     def validate(self) -> None:
         """Validate required configuration values."""
@@ -39,11 +42,13 @@ class Config:
             raise ValueError("LRS_ENDPOINT is required")
         if not self.LRS_KEY or not self.LRS_SECRET:
             raise ValueError("LRS_KEY and LRS_SECRET are required")
+        if not self.ACTOR_UUID:
+            raise ValueError("ACTOR_UUID is required - each client must set a unique student UUID")
         
-        if self.JWT_ALGORITHM == "RS256" and not self.JWT_PUBLIC_KEY:
-            raise ValueError("JWT_PUBLIC_KEY is required for RS256")
-        if self.JWT_ALGORITHM == "HS256" and not self.JWT_SECRET:
-            raise ValueError("JWT_SECRET is required for HS256")
+        # Production security validations
+        if self.ENV == "production":
+            if not self.LRS_ENDPOINT.startswith("https://"):
+                raise ValueError("LRS_ENDPOINT must use HTTPS in production")
 
 
 config = Config()

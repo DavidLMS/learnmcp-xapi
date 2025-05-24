@@ -2,6 +2,4 @@ CLAUDE.md
 .env
 private.pem
 public.pem
-/learnmcp_xapi/__pycache__
-/learnmcp_xapi/mcp/__pycache__
-/learnmcp_xapi/mcp/middleware/__pycache__
+__pycache__/
