@@ -64,7 +64,9 @@ LearnMCP-xAPI implements the Model Context Protocol (MCP) to create a seamless c
 
 1. **AI Agent Integration**: Through MCP, AI agents gain access to three core learning tools: statement recording, progress retrieval, and activity vocabulary management.
 
-2. **Natural Language Processing**: When students interact with AI about learning activities—"I practiced Python loops today" or "I'm struggling with quadratic equations"—the AI agent can automatically convert these interactions into structured learning statements.
+2. **Natural Language Processing**: LearnMCP-xAPI enables two complementary approaches to learning activity capture:
+   - **Explicit Learning Activities**: When students directly mention their learning—"I practiced Python loops today" or "I'm struggling with quadratic equations"—the AI agent converts these into structured statements.
+   - **Implicit Learning Evidence**: AI agents can analyze conversations to identify demonstrated knowledge or gaps, automatically recording evidence like "Student successfully explained recursion concepts" or "Student showed confusion with database joins" based on the natural flow of educational dialogue.
 
 3. **xAPI Statement Generation**: LearnMCP-xAPI transforms learning activities into xAPI-compliant statements that include the learner (actor), the activity (verb + object), context, and results. These statements conform to educational data standards and can include scores, completion status, and additional metadata.
 
@@ -165,6 +167,25 @@ uv pip install -r requirements.txt
 uv pip install -e .
 ```
 
+#### Option 4: Use Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/DavidLMS/learnmcp-xapi.git
+cd learnmcp-xapi
+
+# Build the Docker image
+docker build -t learnmcp-xapi:1.0 .
+
+# Run with environment variables
+docker run -p 8000:8000 \
+  -e LRS_ENDPOINT=http://localhost:8080 \
+  -e LRS_KEY=your-lrs-key \
+  -e LRS_SECRET=your-lrs-secret \
+  -e ACTOR_UUID=student-unique-id-here \
+  learnmcp-xapi:1.0
+```
+
 ### Configuration
 
 Copy the example configuration file and customize it for your setup:
@@ -200,13 +221,12 @@ LearnMCP-xAPI is designed to work with various Learning Record Stores and AI cli
 
 ## Future Development
 
-LearnMCP-xAPI is under active development with planned features including:
+LearnMCP-xAPI is under active development with planned improvements including:
 
-- **Enhanced Learning Analytics**: Advanced pattern recognition and learning trajectory analysis
-- **Competency Mapping**: Integration with educational standards and learning objectives
-- **Multi-Modal Learning Support**: Support for various types of learning activities beyond text-based interactions
-- **Collaborative Learning**: Features for group learning activities and peer assessment
-- **Advanced Privacy Controls**: Enhanced options for educational data governance and compliance
+- **Expanded Integration Testing**: Comprehensive compatibility testing and setup guides for additional Learning Record Stores and MCP clients.
+- **Live Demo Environment**: Interactive demonstration platform where users can test LearnMCP-xAPI functionality without local setup.
+- **Educational Assessment Templates**: Pre-built system prompts that enable AI agents to record learning evidence according to specific curriculum standards, evaluation criteria, and educational legislation requirements.
+- **Interchangeable Learning Profiles**: Dynamic profile system where AI agents can retrieve assessment criteria and recording formats directly from the MCP server, eliminating the need for manual prompt configuration.
 
 ## License
 
