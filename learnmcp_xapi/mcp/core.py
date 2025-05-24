@@ -4,10 +4,8 @@ import logging
 import json
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Union
-from urllib.parse import urlparse
 
 from fastapi import HTTPException, status
-from jsonschema import ValidationError
 
 from ..verbs import get_verb, list_verbs
 from .validator import validate_xapi_statement, is_valid_iri
@@ -131,7 +129,7 @@ async def record_statement(
             "objectType": "Activity"
         },
         "context": {
-            "platform": "LearnMCP-xAPI"
+            "platform": "learnmcp-xapi"
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
     }

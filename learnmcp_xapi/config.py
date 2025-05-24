@@ -1,4 +1,4 @@
-"""Configuration management for LearnMCP-xAPI."""
+"""Configuration management for learnmcp-xapi."""
 
 import os
 from typing import Optional

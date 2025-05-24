@@ -1,11 +1,9 @@
 """Tests for record_statement functionality."""
 
 import pytest
-from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 import respx
-import httpx
 from fastapi.testclient import TestClient
 
 from ..main import app

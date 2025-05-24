@@ -1,4 +1,4 @@
-# LearnMCP-xAPI v1.0
+# learnmcp-xapi v1.0
 
 MCP proxy server for xAPI Learning Record Store integration.
 
@@ -76,7 +76,7 @@ cd lrsql-1.2.17-standalone
 3. Navigate to "Credentials" → "Create New Credential"
 4. Note down the **API Key** and **API Secret**
 
-### 3. Configure LearnMCP-xAPI
+### 3. Configure learnmcp-xapi
 
 Update your `.env` file:
 
@@ -91,7 +91,7 @@ JWT_SECRET=test-secret-key-for-development
 ### 4. Test Integration
 
 1. **Start LRSQL** (see setup above)
-2. **Start LearnMCP-xAPI**: `python -m learnmcp_xapi.main`  
+2. **Start learnmcp-xapi**: `python -m learnmcp_xapi.main`  
 3. **Configure Claude Desktop** with the JSON above
 4. **Restart Claude Desktop**
 5. **Test in Claude**: Ask Claude to "Record that I practiced Linear Algebra with level 2"
@@ -124,7 +124,7 @@ Find your Claude Desktop configuration file:
 
 ### 2. Add MCP Server Configuration
 
-Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the absolute path to your Python executable and project directory:
+Edit the config file to include the learnmcp-xapi server. **Important**: Use the absolute path to your Python executable and project directory:
 
 **Option 1: Using the run_server.py script (Recommended)**
 
@@ -134,7 +134,7 @@ Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the
     "learnmcp-xapi": {
       "command": "/path/to/your/python",
       "args": [
-        "/absolute/path/to/LearnMCP-xAPI/run_server.py"
+        "/absolute/path/to/learnmcp-xapi/run_server.py"
       ],
       "env": {
         "LRS_ENDPOINT": "http://localhost:8080",
@@ -158,9 +158,9 @@ Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the
       "args": [
         "-m", "learnmcp_xapi.main"
       ],
-      "cwd": "/absolute/path/to/LearnMCP-xAPI",
+      "cwd": "/absolute/path/to/learnmcp-xapi",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/LearnMCP-xAPI",
+        "PYTHONPATH": "/absolute/path/to/learnmcp-xapi",
         "LRS_ENDPOINT": "http://localhost:8080",
         "LRS_KEY": "your-api-key-here",
         "LRS_SECRET": "your-api-secret-here",
@@ -176,7 +176,7 @@ Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the
 
 **macOS/Linux:**
 - **Python path**: `which python3` or `which python`
-- **Project path**: `pwd` inside the LearnMCP-xAPI directory
+- **Project path**: `pwd` inside the learnmcp-xapi directory
 - **Common Python locations**:
   - Homebrew (macOS): `/opt/homebrew/bin/python3`
   - Anaconda: `/Users/username/anaconda3/bin/python`
@@ -184,7 +184,7 @@ Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the
 
 **Windows:**
 - **Python path**: `where python` in Command Prompt
-- **Project path**: `cd` to LearnMCP-xAPI folder, then `echo %cd%`
+- **Project path**: `cd` to learnmcp-xapi folder, then `echo %cd%`
 - **Common Python locations**:
   - Anaconda: `C:\Users\username\anaconda3\python.exe`
   - Python.org: `C:\Users\username\AppData\Local\Programs\Python\Python311\python.exe`
@@ -197,7 +197,7 @@ Edit the config file to include the LearnMCP-xAPI server. **Important**: Use the
     "learnmcp-xapi": {
       "command": "C:\\Users\\username\\anaconda3\\python.exe",
       "args": [
-        "C:\\path\\to\\LearnMCP-xAPI\\run_server.py"
+        "C:\\path\\to\\learnmcp-xapi\\run_server.py"
       ],
       "env": {
         "LRS_ENDPOINT": "http://localhost:8080",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Entry point script for LearnMCP-xAPI server."""
+"""Entry point script for learnmcp-xapi server."""
 
 import sys
 import os

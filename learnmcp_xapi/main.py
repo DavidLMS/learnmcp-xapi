@@ -1,4 +1,4 @@
-"""LearnMCP-xAPI main application."""
+"""learnmcp-xapi main application."""
 
 import logging
 from typing import Dict, List, Any, Optional, Union
@@ -7,7 +7,6 @@ from fastmcp import FastMCP
 
 from .config import config
 from .mcp.core import record_statement, get_statements, get_available_verbs
-from .mcp.lrs_client import get_lrs_client
 
 # Configure logging
 logging.basicConfig(

@@ -4,7 +4,7 @@ import json
 import pathlib
 from typing import Dict, Any
 
-from jsonschema import Draft7Validator, ValidationError
+from jsonschema import Draft7Validator
 
 # Load xAPI statement schema at module level
 _SCHEMA_PATH = pathlib.Path(__file__).parent.parent.parent / "schemas" / "xapi-statement.json"
