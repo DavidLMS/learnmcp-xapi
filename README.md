@@ -1,4 +1,4 @@
-# learnmcp-xapi v1.0
+# LearnMCP-xAPI
 
 MCP proxy server for xAPI Learning Record Store integration.
 
