@@ -1,341 +1,223 @@
-# learnmcp-xapi v1.0
+# LearnMCP-xAPI
 
-MCP (Model Context Protocol) server for xAPI Learning Record Store integration with simple configuration.
+<p align="center">
+  <a href="https://github.com/DavidLMS/learnmcp-xapi/pulls">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?longCache=true" alt="Pull Requests">
+  </a>
+  <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-yellow.svg?longCache=true" alt="MIT License">
+    </a>
+</p>
 
-## Features
+LearnMCP-xAPI is an open-source MCP (Model Context Protocol) server that enables AI agents to record and retrieve learning activities through xAPI-compliant Learning Record Stores. Unlike traditional educational AI tools that focus on content generation or automated grading, LearnMCP-xAPI creates a bridge between AI interactions and learning analytics, allowing intelligent systems to build contextual understanding of what learners know, practice, and achieve.
 
-- **xAPI 1.0.3 compliant** statement recording and retrieval
-- **Simple configuration** with unique actor UUID per client
-- **LRS security** via API key authentication
-- **Rate limiting** (30 requests/minute per IP)
-- **Privacy by design** (configurable actor UUID)
-- **LRS retry logic** with exponential backoff
-- **MCP tools** for seamless LLM integration
+This project addresses a fundamental gap in AI-powered education: the ability for AI agents to maintain persistent, structured records of learning progress that can inform future interactions and provide evidence of skill development. Whether you're building AI tutoring systems, personalized learning assistants, or educational analytics platforms, LearnMCP-xAPI provides the infrastructure to make AI interactions learning-aware.
 
-## Quick Start
+> **Important Note:** LearnMCP-xAPI is designed as a foundational component for educational technology systems. It enables AI agents to participate meaningfully in the learning process by maintaining awareness of student progress, but it does not replace thoughtful pedagogical design or human educational expertise.
 
-1. **Install dependencies**:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+<p align="center">
+    <a href="https://github.com/DavidLMS/learnmcp-xapi/issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%5BBUG%5D">Report Bug</a>
+    ·
+    <a href="https://github.com/DavidLMS/learnmcp-xapi/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%5BREQUEST%5D">Request Feature</a>
+    ·
+    <a href="https://github.com/DavidLMS/learnmcp-xapi/wiki">Wiki</a>
+  </p>
 
-2. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your LRS settings and unique ACTOR_UUID
-   ```
+## Table of Contents
 
-3. **Run the server**:
-   ```bash
-   python -m learnmcp_xapi.main
-   ```
-   
-   The server will start as an MCP server with:
-   - Health check at http://localhost:8000/health
-   - MCP tools accessible via MCP protocol
+[Motivation](#motivation)
 
-4. **Test the server**:
-   ```bash
-   # Health check
-   curl http://localhost:8000/health
-   
-   # For MCP tool testing, use Claude Desktop
-   # See "Connecting to Claude Desktop" section below
-   ```
+[How LearnMCP-xAPI Works](#how-learnmcp-xapi-works)
 
-## MCP Tools
+[Key Features](#key-features)
 
-- `record_xapi_statement` - Record learning evidence
-- `get_xapi_statements` - Retrieve actor's statements
-- `list_available_verbs` - Get available verb aliases
+[Architecture Overview](#architecture-overview)
 
-## Additional Endpoints
+[Getting Started](#getting-started)
 
-- `GET /health` - Health check endpoint
+[Integration Guides](#integration-guides)
 
-## Testing
+[License](#license)
+
+[Contributing](#contributing)
+
+## Motivation
+
+The current landscape of AI in education is dominated by familiar patterns: pre-made prompts, automated content generation, and the eternal struggle between students wanting AI to do their work and teachers trying to prevent exactly that. This approach treats AI as either a shortcut or an obstacle, missing the transformative potential of intelligent systems that can genuinely support learning.
+
+The inspiration for LearnMCP-xAPI came from observing this fundamental disconnect. Most educational AI tools operate in isolation—they generate responses, create activities, or analyze text, but they don't learn from or contribute to a student's ongoing educational journey. There's no memory of what a student has practiced, struggled with, or mastered. Each interaction starts from zero.
+
+Learning Record Stores (LRS) and the xAPI specification have long provided a solution for capturing and analyzing learning activities, but they've remained largely disconnected from the AI systems that are increasingly central to educational experiences. LearnMCP-xAPI bridges this gap by enabling AI agents to both contribute to and learn from comprehensive learning records.
+
+This approach opens possibilities that go far beyond traditional AI tutoring:
+
+- **Adaptive AI Companions**: AI assistants that adjust their explanations based on what a student has previously learned and where they've struggled.
+- **Evidence-Based Assessment**: Teachers can gather authentic evidence of learning from natural AI interactions rather than artificial testing scenarios.
+- **Personalized Learning Pathways**: AI systems that recommend next steps based on comprehensive learning histories.
+- **Cross-Platform Learning Continuity**: Students' learning progress follows them across different AI-powered educational tools.
+
+The goal isn't to replace human teachers or traditional learning methods, but to create AI systems that can meaningfully participate in the learning process—understanding context, building on prior knowledge, and contributing to a richer, more personalized educational experience.
+
+## How LearnMCP-xAPI Works
+
+LearnMCP-xAPI implements the Model Context Protocol (MCP) to create a seamless connection between AI agents and learning analytics infrastructure. The system operates as a bridge, translating natural language learning interactions into structured xAPI statements while providing AI agents with contextual awareness of student progress.
+
+1. **AI Agent Integration**: Through MCP, AI agents gain access to three core learning tools: statement recording, progress retrieval, and activity vocabulary management.
+
+2. **Natural Language Processing**: When students interact with AI about learning activities—"I practiced Python loops today" or "I'm struggling with quadratic equations"—the AI agent can automatically convert these interactions into structured learning statements.
+
+3. **xAPI Statement Generation**: LearnMCP-xAPI transforms learning activities into xAPI-compliant statements that include the learner (actor), the activity (verb + object), context, and results. These statements conform to educational data standards and can include scores, completion status, and additional metadata.
+
+4. **Learning Record Store Integration**: Statements are securely stored in any xAPI 1.0.3 compliant LRS. The system handles authentication, validation, and error recovery automatically.
+
+5. **Contextual Retrieval**: AI agents can query learning histories to understand what students have practiced, achieved, or struggled with. This enables responses that build on prior knowledge and address individual learning needs.
+
+6. **Privacy-Preserving Design**: Each student receives a unique identifier (ACTOR_UUID) that separates their learning records while maintaining privacy. No personal information is stored—only learning activities and progress indicators.
+
+This architecture enables AI systems to participate in the complete learning cycle: they can understand where students are coming from, contribute meaningful educational interactions, and build evidence of learning progress that benefits both students and educators.
+
+## Key Features
+
+- **xAPI 1.0.3 Compliance**: Full compatibility with the xAPI specification ensures interoperability with existing educational technology ecosystems,
+- **MCP Integration**: Native support for the Model Context Protocol enables seamless AI agent connectivity.
+- **Universal LRS Support**: Works with any xAPI-compliant Learning Record Store, from lightweight SQLite solutions to enterprise platforms.
+- **Privacy by Design**: Student identifiers are configurable and separate from personal information, ensuring educational data privacy.
+- **Intelligent Statement Generation**: Automatically converts natural language learning activities into structured xAPI statements with appropriate scoring and context.
+- **Contextual Learning Queries**: AI agents can retrieve filtered learning histories to understand student progress and adapt their responses.
+- **Retry Logic and Error Handling**: Robust network handling ensures reliable communication with Learning Record Stores.
+- **Educational Vocabulary Management**: Built-in support for common learning verbs (practiced, mastered, experienced, achieved) with extensible architecture.
+- **Multi-Student Support**: Simple configuration enables deployment across classrooms, institutions, or individual learners.
+- **Real-Time Learning Analytics**: Immediate availability of learning data for adaptive AI responses and educational insights.
+
+## Architecture Overview
+
+LearnMCP-xAPI follows a modular architecture designed for educational technology integration.
+
+**Core Components:**
+
+- **MCP Tools Layer**: Exposes learning functionality to AI agents through standardized MCP protocol.
+- **xAPI Statement Engine**: Converts learning activities into compliant xAPI statements with proper validation.
+- **LRS Client**: Handles authentication, communication, and error recovery with Learning Record Stores.
+- **Privacy Management**: Ensures secure handling of student identifiers and learning data.
+- **Configuration System**: Flexible environment-based setup for different deployment scenarios.
+
+## Getting Started
+
+### Prerequisites
+
+Before starting, ensure you have:
+- Python 3.8 or higher
+- Access to an xAPI-compliant Learning Record Store (we recommend [LRS SQL](https://github.com/yetanalytics/lrsql) for development)
+- An MCP-compatible AI client (such as Claude Desktop)
+
+### Installation
+
+#### Option 1: Install from source
 
 ```bash
-pytest -q
+# Clone the repository
+git clone https://github.com/DavidLMS/learnmcp-xapi.git
+cd learnmcp-xapi
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package
+pip install -e .
 ```
 
-## Docker Deployment
+#### Option 2: Install with venv
 
 ```bash
-# Build image
-docker build -t learnmcp-xapi:1.0 .
+# Clone the repository
+git clone https://github.com/DavidLMS/learnmcp-xapi.git
+cd learnmcp-xapi
 
-# Run with environment variables
-docker run -p 8000:8000 \
-  -e LRS_ENDPOINT=http://localhost:8080 \
-  -e LRS_KEY=your-lrs-key \
-  -e LRS_SECRET=your-lrs-secret \
-  -e ACTOR_UUID=student-unique-id-here \
-  learnmcp-xapi:1.0
+# Create and activate a virtual environment
+python -m venv learnmcp-env
+source learnmcp-env/bin/activate  # On Windows: learnmcp-env\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package
+pip install -e .
 ```
 
-## LRS Setup Example: LRSQL
-
-This application works with any xAPI 1.0.3 compliant LRS. Here's how to set up [LRSQL](https://github.com/yetanalytics/lrsql) as an example:
-
-### 1. Download and Start LRSQL
+#### Option 3: Install with uv
 
 ```bash
-# Download latest release
-wget https://github.com/yetanalytics/lrsql/releases/latest/download/lrsql-1.2.17-standalone.tar.gz
-tar -xzf lrsql-1.2.17-standalone.tar.gz
-cd lrsql-1.2.17-standalone
+# Install uv if you don't have it
+pip install uv
 
-# Start with SQLite (simplest option)
-./bin/run_sqlite.sh
+# Clone the repository
+git clone https://github.com/DavidLMS/learnmcp-xapi.git
+cd learnmcp-xapi
+
+# Create and activate a virtual environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+uv pip install -r requirements.txt
+
+# Install the package
+uv pip install -e .
 ```
 
-### 2. Create API Credentials
+### Configuration
 
-1. Open http://localhost:8080 in your browser
-2. Login with default admin credentials (check startup logs)
-3. Navigate to "Credentials" → "Create New Credential"
-4. Note down the **API Key** and **API Secret**
+Copy the example configuration file and customize it for your setup:
 
-### 3. Configure learnmcp-xapi
-
-Update your `.env` file:
-
-```env
-ENV=development
-LRS_ENDPOINT=http://localhost:8080
-LRS_KEY=your-api-key-here
-LRS_SECRET=your-api-secret-here
-ACTOR_UUID=student-alice-12345
-```
-
-### 4. Test Integration
-
-1. **Start LRSQL** (see setup above)
-2. **Start learnmcp-xapi**: `python -m learnmcp_xapi.main`  
-3. **Configure Claude Desktop** (see below)
-4. **Test via Claude Desktop**:
-   - Ask Claude: "Record that I practiced Linear Algebra with level 2"
-   - Claude will use the MCP tools to record the statement
-
-The statement should appear in LRSQL's web interface under "Statements".
-
-### Other LRS Compatibility
-
-This application follows xAPI 1.0.3 standards and should work with:
-- **Learning Locker** (Community/Commercial)
-- **TinCan LRS** 
-- **Watershed LRS**
-- **Any xAPI-compliant LRS**
-
-Simply update `LRS_ENDPOINT`, `LRS_KEY`, and `LRS_SECRET` in your `.env` file.
-
-## Configuration
-
-See `.env.example` for all available environment variables.
-
-## Connecting to Claude Desktop
-
-### 1. Locate Claude Desktop Config
-
-Find your Claude Desktop configuration file:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-### 2. Add MCP Server Configuration
-
-Edit the config file to include the learnmcp-xapi server:
-
-```json
-{
-  "mcpServers": {
-    "learnmcp-xapi": {
-      "command": "/absolute/path/to/python",
-      "args": [
-        "/absolute/path/to/learnmcp-xapi/run_server.py"
-      ],
-      "env": {
-        "ENV": "development",
-        "LRS_ENDPOINT": "http://localhost:8080",
-        "LRS_KEY": "your-lrsql-api-key",
-        "LRS_SECRET": "your-lrsql-api-secret",
-        "ACTOR_UUID": "student-alice-12345",
-        "LOG_LEVEL": "INFO"
-      }
-    }
-  }
-}
-```
-
-**Important**: Each student should use a **unique ACTOR_UUID** in their configuration. This UUID identifies the student in the learning records.
-
-**How to find your paths:**
-- **Python path**: `which python3` (macOS/Linux) or `where python` (Windows)
-- **Project path**: `pwd` inside the learnmcp-xapi directory
-
-### 3. Testing the Connection
-
-1. **Start your LRS** (e.g., LRSQL on port 8080)
-2. **Start learnmcp-xapi server**: `python -m learnmcp_xapi.main`
-3. **Restart Claude Desktop** after config changes
-4. **Look for the 🔨 hammer icon** in Claude Desktop's input area
-5. **Test the tools**:
-   - "List available learning verbs"
-   - "Record that I practiced Python with level 2"
-
-### 4. Available Tools in Claude
-
-Once connected, Claude will have access to:
-
-- **📝 record_xapi_statement**: Log learning activities and achievements
-  - Params: verb, object_id, level (optional), extras (optional)
-  
-- **📊 get_xapi_statements**: Retrieve your learning history
-  - Params: verb, object_id, since, until, limit (all optional)
-  
-- **📋 list_available_verbs**: See available learning verbs
-  - Returns: {"experienced": "http://...", "practiced": "http://...", ...}
-
-### 5. Multiple Students Setup
-
-Each student should have their own unique configuration:
-
-**Student Alice:**
-```json
-{
-  "env": {
-    "ACTOR_UUID": "student-alice-12345",
-    "LRS_ENDPOINT": "https://school.edu/lrs"
-  }
-}
-```
-
-**Student Bob:**
-```json
-{
-  "env": {
-    "ACTOR_UUID": "student-bob-67890",
-    "LRS_ENDPOINT": "https://school.edu/lrs"
-  }
-}
-```
-
-This way, each student's learning activities are tracked separately in the same LRS.
-
-### 6. Troubleshooting
-
-**No 🔨 hammer icon appears:**
-- Verify JSON syntax in claude_desktop_config.json
-- Use absolute paths (no ~ or relative paths)
-- Check Python path: `which python3`
-- Ensure dependencies installed: `pip install -r requirements.txt`
-
-**"ACTOR_UUID is required" error:**
-- Make sure ACTOR_UUID is set in your Claude Desktop config
-- Use a unique identifier for each student
-- Restart Claude Desktop after config changes
-
-**"LRS unavailable" errors:**
-- Verify LRS is running (LRSQL: http://localhost:8080)
-- Check LRS_KEY and LRS_SECRET are correct
-- Test LRS directly: `curl -u "key:secret" http://localhost:8080/xAPI/statements`
-
-**Configuration issues:**
-- Check server logs for startup errors
-- Verify health endpoint: `curl http://localhost:8000/health`
-- Check Claude logs: `~/Library/Logs/Claude/mcp.log` (macOS)
-
-## Security Model
-
-### How Student Identity Works
-
-1. **Physical Isolation**: Each student runs Claude Desktop on their own device
-2. **Local Configuration**: Each student sets their unique ACTOR_UUID in their local config
-3. **LRS Protection**: The LRS is protected by API keys and HTTPS
-4. **Statement Tracking**: Each statement is tagged with the student's ACTOR_UUID
-
-### Security Benefits
-
-- ✅ **No shared secrets**: No JWT tokens to manage or expire
-- ✅ **Simple setup**: Just configure ACTOR_UUID per student
-- ✅ **LRS security**: Existing LRS authentication protects the data
-- ✅ **Audit trail**: Each statement clearly identifies the student
-- ✅ **Self-contained**: Each student's setup is independent
-
-### Production Recommendations
-
-- Use **HTTPS** for LRS_ENDPOINT in production
-- Use **unique ACTOR_UUIDs** for each student (e.g., student ID numbers)
-- Configure **strong LRS credentials** and rotate them regularly
-- Monitor **LRS access logs** for unusual activity
-- Use **institutional LRS** rather than local development setup
-
-## Environment Variables Reference
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ENV` | No | `development` | Environment (development/production) |
-| `LRS_ENDPOINT` | Yes | - | LRS base URL (use HTTPS in production) |
-| `LRS_KEY` | Yes | - | LRS API key |
-| `LRS_SECRET` | Yes | - | LRS API secret |
-| `ACTOR_UUID` | Yes | - | Unique student identifier |
-| `RATE_LIMIT_PER_MINUTE` | No | `30` | Requests per minute per IP |
-| `MAX_BODY_SIZE` | No | `16384` | Max request body size (bytes) |
-| `LOG_LEVEL` | No | `INFO` | Logging level |
-
-## Integration with MCP Clients
-
-This MCP server can be integrated with any MCP-compatible client:
-
-- **Claude Desktop** (recommended)
-- **Custom MCP clients**
-- **Educational platforms** using MCP protocol
-- **AI tutoring systems** via MCP
-
-**MCP Client Requirements:**
-1. Support MCP protocol (SSE + JSON-RPC)
-2. Set unique ACTOR_UUID in environment configuration
-3. Handle MCP tool call/response format
-4. Support async tool execution
-
-## Production Deployment
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  learnmcp-xapi:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - ENV=production
-      - LRS_ENDPOINT=https://your-production-lrs.com
-      - LRS_KEY=${LRS_KEY}
-      - LRS_SECRET=${LRS_SECRET}
-      - ACTOR_UUID=${ACTOR_UUID}
-    restart: unless-stopped
-```
-
-### Environment-Specific Setup
-
-**Development:**
 ```bash
-export ENV=development
-export LRS_ENDPOINT=http://localhost:8080
-export ACTOR_UUID=dev-student-12345
+cp .env.example .env
+```
+Edit the `.env` file with your specific LRS settings and student identifier. See `.env.example` for all available configuration options.
+
+### Quick Test
+
+```bash
+# Start the MCP server
+python -m learnmcp_xapi.main
+
+# Check health endpoint
+curl http://localhost:8000/health
 ```
 
-**Production:**
-```bash
-export ENV=production
-export LRS_ENDPOINT=https://lrs.school.edu
-export ACTOR_UUID=student-alice-institutional-id
-```
+You should see a response indicating the server is healthy and connected to your LRS.
+
+## Integration Guides
+
+LearnMCP-xAPI is designed to work with various Learning Record Stores and AI clients. Detailed setup guides are available in our Wiki:
+
+### Learning Record Store Integration
+- **[LRS SQL Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/LRS-Integrations/LRSQL-Setup)** - Complete guide for setting up LRSQL as your development LRS
+- More LRS integrations coming soon...
+
+### AI Client Integration
+- **[Claude Desktop Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/MCP-Client-Integrations/Claude-Desktop-Setup)** - Step-by-step guide for connecting Claude Desktop as your AI learning companion
+- More client integrations coming soon...
+
+## Future Development
+
+LearnMCP-xAPI is under active development with planned features including:
+
+- **Enhanced Learning Analytics**: Advanced pattern recognition and learning trajectory analysis
+- **Competency Mapping**: Integration with educational standards and learning objectives
+- **Multi-Modal Learning Support**: Support for various types of learning activities beyond text-based interactions
+- **Collaborative Learning**: Features for group learning activities and peer assessment
+- **Advanced Privacy Controls**: Enhanced options for educational data governance and compliance
 
 ## License
 
-MIT
+LearnMCP-xAPI is released under the [MIT License](https://github.com/DavidLMS/learnmcp-xapi/blob/main/LICENSE). You are free to use, modify, and distribute the code for both commercial and non-commercial purposes.
+
+## Contributing
+
+Contributions to LearnMCP-xAPI are welcome! Whether you're improving the code, enhancing the documentation, or suggesting new features, your input is valuable. Please check out the [CONTRIBUTING.md](https://github.com/DavidLMS/learnmcp-xapi/blob/main/CONTRIBUTING.md) file for guidelines on how to get started and make your contributions count.
+
+We're particularly interested in:
+- Additional LRS integrations and compatibility testing
+- New MCP client implementations and examples
+- Educational use case studies and best practices
+- Performance optimizations and security enhancements
