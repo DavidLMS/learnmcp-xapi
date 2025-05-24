@@ -108,7 +108,7 @@ LearnMCP-xAPI follows a modular architecture designed for educational technology
 Before starting, ensure you have:
 - Python 3.8 or higher
 - Access to an xAPI-compliant Learning Record Store (we recommend [LRS SQL](https://github.com/yetanalytics/lrsql) for development)
-- An MCP-compatible AI client (such as Claude Desktop)
+- An MCP-compatible client (such as Claude Desktop)
 
 ### Installation
 
