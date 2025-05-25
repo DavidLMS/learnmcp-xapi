@@ -202,7 +202,7 @@ You should see a response indicating the server is starting.
 LearnMCP-xAPI is designed to work with various Learning Record Stores and AI clients. Detailed setup guides are available in our Wiki:
 
 ### Learning Record Store Integration
-- **[LRS SQL Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/LRSQL-Setup)** - Complete guide for setting up LRSQL as your development LRS
+- **[LRS SQL Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/SQL-LRS-Setup)** - Complete guide for setting up LRSQL as your development LRS
 - More LRS integrations coming soon...
 
 ### AI Client Integration
