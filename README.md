@@ -1,4 +1,4 @@
-# LearnMCP-xAPI
+![poster](assets/poster.png)
 
 <p align="center">
   <a href="https://github.com/DavidLMS/learnmcp-xapi/pulls">
@@ -8,6 +8,8 @@
       <img src="https://img.shields.io/badge/License-MIT-yellow.svg?longCache=true" alt="MIT License">
     </a>
 </p>
+
+# LearnMCP-xAPI
 
 LearnMCP-xAPI is an open-source MCP (Model Context Protocol) server that enables AI agents to record and retrieve learning activities through xAPI-compliant Learning Record Stores. Unlike traditional educational AI tools that focus on content generation or automated grading, LearnMCP-xAPI creates a bridge between AI interactions and learning analytics, allowing intelligent systems to build contextual understanding of what learners know, practice, and achieve.
 
