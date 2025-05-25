@@ -193,12 +193,9 @@ Edit the `.env` file with your specific LRS settings and student identifier. See
 ```bash
 # Start the MCP server
 python -m learnmcp_xapi.main
-
-# Check health endpoint
-curl http://localhost:8000/health
 ```
 
-You should see a response indicating the server is healthy and connected to your LRS.
+You should see a response indicating the server is starting.
 
 ## Integration Guides
 
