@@ -1,5 +1,3 @@
-CLAUDE.md
 .env
-private.pem
-public.pem
 __pycache__/
+.DS_Store
