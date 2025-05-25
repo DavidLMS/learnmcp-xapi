@@ -110,7 +110,7 @@ async def health_check(request):
 
 
 # Get underlying Starlette app and add health route
-app: Starlette = mcp.sse_app()
+app: Starlette = mcp.http_app()
 health_route = Route("/health", health_check, methods=["GET"])
 app.routes.append(health_route)
 

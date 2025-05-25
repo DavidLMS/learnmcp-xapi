@@ -125,9 +125,6 @@ cd learnmcp-xapi
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Install the package
-pip install -e .
 ```
 
 #### Option 2: Install with venv
@@ -143,9 +140,6 @@ source learnmcp-env/bin/activate  # On Windows: learnmcp-env\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Install the package
-pip install -e .
 ```
 
 #### Option 3: Install with uv
@@ -164,9 +158,6 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 uv pip install -r requirements.txt
-
-# Install the package
-uv pip install -e .
 ```
 
 #### Option 4: Use Docker
