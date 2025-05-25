@@ -191,7 +191,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="c1"># Get underlying Starlette app and add health route</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="n">app</span><span class="p">:</span> <span class="n">Starlette</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">sse_app</span><span class="p">()</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="n">app</span><span class="p">:</span> <span class="n">Starlette</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">http_app</span><span class="p">()</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="n">health_route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="n">health_check</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="n">app</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">health_route</span><span class="p">)</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
