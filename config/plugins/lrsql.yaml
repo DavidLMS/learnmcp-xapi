@@ -1,0 +1,13 @@
+# LRS SQL Configuration
+# This file is optional - all values can be set via environment variables
+
+# LRS endpoint URL
+endpoint: ${LRSQL_ENDPOINT:-http://localhost:8080}
+
+# Authentication
+key: ${LRSQL_KEY}
+secret: ${LRSQL_SECRET}
+
+# Optional settings
+timeout: 30
+retry_attempts: 3

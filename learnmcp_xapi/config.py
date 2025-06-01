@@ -19,10 +19,9 @@ class Config:
     
     def __init__(self) -> None:
         """Initialize configuration from environment variables."""
-        # LRS Configuration
-        self.LRS_ENDPOINT: str = os.getenv("LRS_ENDPOINT", "")
-        self.LRS_KEY: str = os.getenv("LRS_KEY", "")
-        self.LRS_SECRET: str = os.getenv("LRS_SECRET", "")
+        # Plugin Configuration
+        self.LRS_PLUGIN: str = os.getenv("LRS_PLUGIN", "lrsql")
+        self.CONFIG_PATH: str = os.getenv("CONFIG_PATH", "./config")
         
         # Actor Configuration - each client sets their own UUID
         self.ACTOR_UUID: str = os.getenv("ACTOR_UUID", "")
@@ -34,20 +33,31 @@ class Config:
         
         # Environment
         self.ENV: str = os.getenv("ENV", "development")
+        
+        # Legacy LRS Configuration (for backward compatibility)
+        # These will be used if present but CONFIG_PATH doesn't exist
+        self.LRS_ENDPOINT: str = os.getenv("LRS_ENDPOINT", "")
+        self.LRS_KEY: str = os.getenv("LRS_KEY", "")
+        self.LRS_SECRET: str = os.getenv("LRS_SECRET", "")
     
     def validate(self) -> None:
         """Validate required configuration values."""
-        if not self.LRS_ENDPOINT:
-            raise ValueError("LRS_ENDPOINT is required")
-        if not self.LRS_KEY or not self.LRS_SECRET:
-            raise ValueError("LRS_KEY and LRS_SECRET are required")
         if not self.ACTOR_UUID:
             raise ValueError("ACTOR_UUID is required - each client must set a unique student UUID")
         
-        # Production security validations
-        if self.ENV == "production":
-            if not self.LRS_ENDPOINT.startswith("https://"):
-                raise ValueError("LRS_ENDPOINT must use HTTPS in production")
+        # Validate plugin exists (will be checked by factory)
+        if not self.LRS_PLUGIN:
+            raise ValueError("LRS_PLUGIN is required")
+        
+        # For backward compatibility: if using old-style config, validate it
+        if self.LRS_ENDPOINT and not Path(self.CONFIG_PATH).exists():
+            if not self.LRS_KEY or not self.LRS_SECRET:
+                raise ValueError("LRS_KEY and LRS_SECRET are required when using legacy configuration")
+            
+            # Production security validations
+            if self.ENV == "production":
+                if not self.LRS_ENDPOINT.startswith("https://"):
+                    raise ValueError("LRS_ENDPOINT must use HTTPS in production")
 
 
 config = Config()

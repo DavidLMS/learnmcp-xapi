@@ -1,4 +1,4 @@
-"""Core MCP tools implementation."""
+"""Core MCP tools implementation using plugin architecture."""
 
 import logging
 import json
@@ -10,9 +10,29 @@ from jsonschema import ValidationError
 
 from ..verbs import get_verb, list_verbs
 from .validator import validate_xapi_statement, is_valid_iri
-from .lrs_client import get_lrs_client
+from ..plugins.base import LRSPlugin
+from ..plugins.factory import PluginFactory
+from ..config import config
 
 logger = logging.getLogger(__name__)
+
+# Global plugin instance
+_lrs_plugin: Optional[LRSPlugin] = None
+
+
+def get_lrs_plugin() -> LRSPlugin:
+    """Get or create LRS plugin instance.
+    
+    Returns:
+        LRS plugin instance
+        
+    Raises:
+        ValueError: If plugin cannot be created
+    """
+    global _lrs_plugin
+    if _lrs_plugin is None:
+        _lrs_plugin = PluginFactory.create_from_config(config)
+    return _lrs_plugin
 
 
 def _build_score(level: Union[int, float], extras: Dict[str, Any]) -> Dict[str, Any]:
@@ -182,8 +202,8 @@ async def record_statement(
         )
     
     # Send to LRS
-    client = get_lrs_client()
-    return await client.post_statement(statement)
+    plugin = get_lrs_plugin()
+    return await plugin.post_statement(statement)
 
 
 async def get_statements(
@@ -248,8 +268,8 @@ async def get_statements(
     if limit > 50:
         limit = 50
     
-    client = get_lrs_client()
-    return await client.get_statements(
+    plugin = get_lrs_plugin()
+    return await plugin.get_statements(
         actor_uuid=actor_uuid,
         verb=verb_uri,
         object_id=object_id,

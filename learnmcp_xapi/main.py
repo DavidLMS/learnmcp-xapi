@@ -1,4 +1,4 @@
-"""learnmcp-xapi main application - MCP Server with simple actor UUID configuration."""
+"""learnmcp-xapi main application - MCP Server with plugin architecture."""
 
 import logging
 from typing import Dict, List, Any, Optional, Union
@@ -10,6 +10,9 @@ from starlette.routing import Route
 
 from .config import config
 from .mcp.core import record_statement, get_statements, get_available_verbs
+from .plugins.registry import plugin_registry
+from .plugins.lrsql import LRSSQLPlugin
+from .plugins.ralph import RalphPlugin
 
 # Configure logging
 logging.basicConfig(
@@ -18,8 +21,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Register available plugins
+plugin_registry.register(LRSSQLPlugin)
+plugin_registry.register(RalphPlugin)
+
+# Log available plugins
+logger.info("Available LRS plugins:")
+for name, description in plugin_registry.list_plugins().items():
+    logger.info(f"  - {name}: {description}")
+
 # Validate configuration
 config.validate()
+logger.info(f"Using LRS plugin: {config.LRS_PLUGIN}")
 
 # Create MCP server
 mcp = FastMCP("learnmcp-xapi")

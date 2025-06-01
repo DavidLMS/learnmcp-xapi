@@ -1,0 +1,20 @@
+# Ralph LRS Configuration
+# This file is optional - all values can be set via environment variables
+
+# Ralph endpoint URL
+endpoint: ${RALPH_ENDPOINT:-http://localhost:8100}
+
+# Authentication method will be auto-detected based on provided credentials
+# For basic auth:
+username: ${RALPH_USERNAME}
+password: ${RALPH_PASSWORD}
+
+# For OIDC:
+oidc_token_url: ${RALPH_OIDC_TOKEN_URL}
+oidc_client_id: ${RALPH_OIDC_CLIENT_ID}
+oidc_client_secret: ${RALPH_OIDC_CLIENT_SECRET}
+oidc_scope: openid
+
+# Optional settings
+timeout: 30
+retry_attempts: 3
