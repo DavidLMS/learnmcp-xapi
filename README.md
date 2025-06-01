@@ -84,7 +84,9 @@ This architecture enables AI systems to participate in the complete learning cyc
 
 - **xAPI 1.0.3 Compliance**: Full compatibility with the xAPI specification ensures interoperability with existing educational technology ecosystems,
 - **MCP Integration**: Native support for the Model Context Protocol enables seamless AI agent connectivity.
-- **Universal LRS Support**: Works with any xAPI-compliant Learning Record Store, from lightweight SQLite solutions to enterprise platforms.
+- **Plugin Architecture**: Extensible plugin system supporting multiple Learning Record Stores with easy configuration switching.
+- **Multiple LRS Support**: Built-in support for LRS SQL and Ralph LRS, with architecture designed for easy addition of new LRS implementations.
+- **Flexible Authentication**: Support for various authentication methods including Basic Auth and OIDC (OpenID Connect) depending on LRS requirements.
 - **Privacy by Design**: Student identifiers are configurable and separate from personal information, ensuring educational data privacy.
 - **Intelligent Statement Generation**: Automatically converts natural language learning activities into structured xAPI statements with appropriate scoring and context.
 - **Contextual Learning Queries**: AI agents can retrieve filtered learning histories to understand student progress and adapt their responses.
@@ -95,15 +97,22 @@ This architecture enables AI systems to participate in the complete learning cyc
 
 ## Architecture Overview
 
-LearnMCP-xAPI follows a modular architecture designed for educational technology integration.
+LearnMCP-xAPI follows a modular plugin architecture designed for educational technology integration and extensibility.
 
 **Core Components:**
 
 - **MCP Tools Layer**: Exposes learning functionality to AI agents through standardized MCP protocol.
 - **xAPI Statement Engine**: Converts learning activities into compliant xAPI statements with proper validation.
-- **LRS Client**: Handles authentication, communication, and error recovery with Learning Record Stores.
+- **Plugin System**: Extensible architecture supporting multiple LRS implementations through a unified interface.
+- **LRS Plugins**: Dedicated plugins for different Learning Record Stores (LRS SQL, Ralph LRS) with specialized authentication and communication handling.
 - **Privacy Management**: Ensures secure handling of student identifiers and learning data.
-- **Configuration System**: Flexible environment-based setup for different deployment scenarios.
+- **Configuration System**: Flexible environment and file-based configuration with plugin selection and management.
+
+**Supported Learning Record Stores:**
+
+- **LRS SQL**: SQLite-based lightweight LRS ideal for development and small deployments
+- **Ralph LRS**: Enterprise-grade LRS by France Université Numérique with support for Basic Auth and OIDC authentication
+- **Plugin Architecture**: Designed for easy addition of new LRS implementations without modifying core code
 
 ## Getting Started
 
@@ -181,12 +190,66 @@ docker run -p 8000:8000 \
 
 ### Configuration
 
+LearnMCP-xAPI uses a flexible configuration system supporting both environment variables and configuration files.
+
+#### Basic Setup (Environment Variables)
+
 Copy the example configuration file and customize it for your setup:
 
 ```bash
 cp .env.example .env
 ```
-Edit the `.env` file with your specific LRS settings and student identifier. See `.env.example` for all available configuration options.
+
+Edit the `.env` file with your LRS plugin selection and student identifier:
+
+```bash
+# Required: Choose your LRS plugin
+LRS_PLUGIN=lrsql  # Options: lrsql, ralph
+
+# Required: Unique identifier for each student
+ACTOR_UUID=student-12345-67890-abcdef
+
+# LRS SQL Configuration (when LRS_PLUGIN=lrsql)
+LRSQL_ENDPOINT=http://localhost:8080
+LRSQL_KEY=your-api-key
+LRSQL_SECRET=your-api-secret
+
+# Ralph LRS Configuration (when LRS_PLUGIN=ralph)
+RALPH_ENDPOINT=http://localhost:8100
+RALPH_USERNAME=your-username  # For Basic Auth
+RALPH_PASSWORD=your-password  # For Basic Auth
+# OR for OIDC:
+# RALPH_OIDC_TOKEN_URL=http://keycloak:8080/auth/realms/test/protocol/openid-connect/token
+# RALPH_OIDC_CLIENT_ID=ralph
+# RALPH_OIDC_CLIENT_SECRET=secret
+```
+
+#### Advanced Setup (Configuration Files)
+
+For more complex deployments, you can use configuration files:
+
+```bash
+# Create configuration directory structure
+mkdir -p config/plugins
+
+# Create LRS-specific configuration files
+echo "endpoint: \${LRSQL_ENDPOINT:-http://localhost:8080}
+key: \${LRSQL_KEY}
+secret: \${LRSQL_SECRET}
+timeout: 30
+retry_attempts: 3" > config/plugins/lrsql.yaml
+
+echo "endpoint: \${RALPH_ENDPOINT:-http://localhost:8100}
+username: \${RALPH_USERNAME}
+password: \${RALPH_PASSWORD}
+oidc_token_url: \${RALPH_OIDC_TOKEN_URL}
+oidc_client_id: \${RALPH_OIDC_CLIENT_ID}
+oidc_client_secret: \${RALPH_OIDC_CLIENT_SECRET}
+timeout: 30
+retry_attempts: 3" > config/plugins/ralph.yaml
+```
+
+See `.env.example` for all available configuration options and plugin-specific settings.
 
 ### Quick Test
 
@@ -199,11 +262,46 @@ You should see a response indicating the server is starting.
 
 ## Integration Guides
 
-LearnMCP-xAPI is designed to work with various Learning Record Stores and AI clients. Detailed setup guides are available in our Wiki:
+LearnMCP-xAPI supports multiple Learning Record Stores through its plugin architecture, making it easy to integrate with your existing educational technology infrastructure.
 
 ### Learning Record Store Integration
-- **[LRS SQL Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/SQL-LRS-Setup)** - Complete guide for setting up LRSQL as your development LRS
-- More LRS integrations coming soon...
+
+#### LRS SQL (Default)
+LRS SQL is a lightweight, SQLite-based Learning Record Store perfect for development and small deployments:
+
+```bash
+# Set plugin to lrsql (default)
+LRS_PLUGIN=lrsql
+LRSQL_ENDPOINT=http://localhost:8080
+LRSQL_KEY=your-api-key
+LRSQL_SECRET=your-api-secret
+```
+
+- **[LRS SQL Setup Guide](https://github.com/DavidLMS/learnmcp-xapi/wiki/SQL-LRS-Setup)** - Complete setup guide for development environments
+
+#### Ralph LRS (Enterprise)
+Ralph LRS is an enterprise-grade Learning Record Store developed by France Université Numérique:
+
+```bash
+# Set plugin to ralph
+LRS_PLUGIN=ralph
+RALPH_ENDPOINT=http://localhost:8100
+
+# Basic Authentication
+RALPH_USERNAME=your-username
+RALPH_PASSWORD=your-password
+
+# OR OIDC Authentication (preferred for production)
+RALPH_OIDC_TOKEN_URL=http://keycloak:8080/auth/realms/test/protocol/openid-connect/token
+RALPH_OIDC_CLIENT_ID=ralph
+RALPH_OIDC_CLIENT_SECRET=secret
+```
+
+- **Authentication Methods**: Ralph plugin automatically detects and uses the appropriate authentication method based on configuration
+- **OIDC Support**: Full OpenID Connect support with automatic token management and refresh
+
+#### Custom LRS Integration
+The plugin architecture makes it easy to add support for new Learning Record Stores. See our [Plugin Development Guide](https://github.com/DavidLMS/learnmcp-xapi/wiki/Plugin-Development) for details.
 
 ### AI Client Integration
 - **[Claude Desktop Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/Claude-Desktop-Setup)** - Step-by-step guide for connecting Claude Desktop as your AI learning companion
@@ -213,6 +311,8 @@ LearnMCP-xAPI is designed to work with various Learning Record Stores and AI cli
 
 LearnMCP-xAPI is under active development with planned improvements including:
 
+- **Additional LRS Plugins**: Support for more Learning Record Stores including TinCan API, xAPI Wrapper, and enterprise platforms.
+- **Enhanced Authentication**: Support for additional authentication methods including JWT, OAuth 2.0, and certificate-based authentication.
 - **Expanded Integration Testing**: Comprehensive compatibility testing and setup guides for additional Learning Record Stores and MCP clients.
 - **Live Demo Environment**: Interactive demonstration platform where users can test LearnMCP-xAPI functionality without local setup.
 - **Educational Assessment Templates**: Pre-built system prompts that enable AI agents to record learning evidence according to specific curriculum standards, evaluation criteria, and educational legislation requirements.
@@ -227,7 +327,9 @@ LearnMCP-xAPI is released under the [MIT License](https://github.com/DavidLMS/le
 Contributions to LearnMCP-xAPI are welcome! Whether you're improving the code, enhancing the documentation, or suggesting new features, your input is valuable. Please check out the [CONTRIBUTING.md](https://github.com/DavidLMS/learnmcp-xapi/blob/main/CONTRIBUTING.md) file for guidelines on how to get started and make your contributions count.
 
 We're particularly interested in:
-- Additional LRS integrations and compatibility testing
-- New MCP client implementations and examples
-- Educational use case studies and best practices
-- Performance optimizations and security enhancements
+- **New LRS Plugins**: Implementing support for additional Learning Record Stores using our plugin architecture
+- **Authentication Methods**: Adding support for new authentication protocols and security standards
+- **Plugin Testing**: Comprehensive testing of existing and new plugin implementations
+- **MCP Client Examples**: New MCP client implementations and integration examples
+- **Educational Use Cases**: Real-world use case studies and best practices documentation
+- **Performance Optimizations**: Improvements to plugin performance and resource utilization

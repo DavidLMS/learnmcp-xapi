@@ -1,0 +1,93 @@
+# Example Docker Compose configurations for different LRS plugins
+# Copy this file to docker-compose.override.yml and customize for your setup
+
+version: '3.8'
+
+services:
+  # Example 1: LearnMCP-xAPI with LRS SQL plugin
+  learnmcp-xapi-lrsql:
+    extends:
+      service: learnmcp-xapi
+    environment:
+      - LRS_PLUGIN=lrsql
+      - ACTOR_UUID=student-12345-67890-abcdef
+      - LRSQL_ENDPOINT=http://lrsql:8080
+      - LRSQL_KEY=your-lrsql-api-key
+      - LRSQL_SECRET=your-lrsql-api-secret
+    depends_on:
+      - lrsql
+    profiles:
+      - lrsql-example
+
+  # Example 2: LearnMCP-xAPI with Ralph plugin (Basic Auth)
+  learnmcp-xapi-ralph-basic:
+    extends:
+      service: learnmcp-xapi
+    environment:
+      - LRS_PLUGIN=ralph
+      - ACTOR_UUID=student-54321-09876-fedcba
+      - RALPH_ENDPOINT=http://ralph:8100
+      - RALPH_USERNAME=student
+      - RALPH_PASSWORD=student_password
+    depends_on:
+      - ralph
+    profiles:
+      - ralph-basic-example
+
+  # Example 3: LearnMCP-xAPI with Ralph plugin (OIDC Auth)
+  learnmcp-xapi-ralph-oidc:
+    extends:
+      service: learnmcp-xapi
+    environment:
+      - LRS_PLUGIN=ralph
+      - ACTOR_UUID=student-11111-22222-33333
+      - RALPH_ENDPOINT=http://ralph:8100
+      - RALPH_OIDC_TOKEN_URL=http://keycloak:8080/auth/realms/test/protocol/openid-connect/token
+      - RALPH_OIDC_CLIENT_ID=ralph
+      - RALPH_OIDC_CLIENT_SECRET=secret
+    depends_on:
+      - ralph
+      - keycloak
+    profiles:
+      - ralph-oidc-example
+
+  # Example 4: Legacy configuration (backward compatibility)
+  learnmcp-xapi-legacy:
+    extends:
+      service: learnmcp-xapi
+    environment:
+      - ACTOR_UUID=student-legacy-12345
+      - LRS_ENDPOINT=http://lrsql:8080
+      - LRS_KEY=legacy-api-key
+      - LRS_SECRET=legacy-api-secret
+      # LRS_PLUGIN will default to 'lrsql'
+    depends_on:
+      - lrsql
+    profiles:
+      - legacy-example
+
+  # Keycloak for OIDC testing
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    profiles:
+      - ralph-oidc-example
+
+# Usage examples:
+# 
+# 1. Start LearnMCP-xAPI with LRS SQL:
+#    docker-compose --profile lrsql-example --profile lrsql-dev up
+#
+# 2. Start LearnMCP-xAPI with Ralph (Basic Auth):
+#    docker-compose --profile ralph-basic-example --profile ralph-dev up
+#
+# 3. Start LearnMCP-xAPI with Ralph (OIDC):
+#    docker-compose --profile ralph-oidc-example --profile ralph-dev up
+#
+# 4. Start with legacy configuration:
+#    docker-compose --profile legacy-example --profile lrsql-dev up

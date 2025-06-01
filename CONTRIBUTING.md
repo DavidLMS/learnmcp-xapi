@@ -55,7 +55,8 @@ A good bug report shouldn't leave others needing to chase you up for more inform
   - Stack trace (if applicable)
   - OS, platform, and version (Windows, Linux, macOS, etc.)
   - Python version and any relevant package versions
-  - LRS type and version (LRS SQL, Learning Locker, etc.)
+  - LRS plugin and version (lrsql, ralph, etc.)
+  - LRS type and version (LRS SQL, Ralph LRS, etc.)
   - Claude Desktop version (if applicable)
   - MCP server configuration
   - Steps to reliably reproduce the issue
@@ -130,7 +131,13 @@ git checkout -B <feature-description>
 3. **Set up environment configuration:**
    ```bash
    cp .env.example .env
-   # Edit .env with your LRS settings for testing
+   # Edit .env with your LRS plugin choice and settings for testing
+   # Example for LRS SQL:
+   # LRS_PLUGIN=lrsql
+   # LRSQL_ENDPOINT=http://localhost:8080
+   # LRSQL_KEY=your-key
+   # LRSQL_SECRET=your-secret
+   # ACTOR_UUID=test-student-uuid
    ```
 
 4. **Run tests to ensure everything works:**
@@ -143,7 +150,7 @@ git checkout -B <feature-description>
 1. Make sure your code follows the style guide and passes linting with `pylint`.
 2. Write tests for any new functionality you add, especially for MCP tools and xAPI statement handling.
 3. Ensure all tests pass before submitting a pull request.
-4. Test your changes with a real LRS (LRS SQL is recommended for development).
+4. Test your changes with a real LRS (LRS SQL plugin is recommended for development).
 5. Document any changes to APIs, MCP tools, or core functionality.
 6. Update the README.md if you add new features or change configuration options.
 7. Submit your pull request, providing a clear and descriptive title and description of your changes.
@@ -152,19 +159,53 @@ git checkout -B <feature-description>
 
 - **xAPI Compliance**: Ensure any changes maintain xAPI 1.0.3 compliance
 - **MCP Protocol**: Follow MCP standards for any new tools or modifications
+- **Plugin Architecture**: When adding new LRS support, create a new plugin following the established patterns
 - **Security**: Be especially careful with authentication and student data handling
 - **Educational Context**: Consider the educational implications of your changes
 - **LRS Compatibility**: Test with multiple LRS systems when possible
+
+#### Contributing New LRS Plugins
+
+If you want to add support for a new Learning Record Store:
+
+1. **Create a new plugin file** in `learnmcp_xapi/plugins/` (e.g., `my_lrs.py`)
+2. **Extend the base classes**:
+   ```python
+   from .base import LRSPlugin, LRSPluginConfig
+   
+   class MyLRSConfig(LRSPluginConfig):
+       # Define plugin-specific configuration fields
+       pass
+   
+   class MyLRSPlugin(LRSPlugin):
+       name = "mylrs"
+       description = "My LRS Implementation"
+       # Implement required methods
+   ```
+3. **Register the plugin** in `main.py`
+4. **Create configuration examples** in `config/plugins/mylrs.yaml`
+5. **Write comprehensive tests** in `tests/test_mylrs.py`
+6. **Update documentation** with setup instructions
+7. **Test thoroughly** with actual LRS instances
+
+**Plugin Requirements:**
+- Support for both environment variable and file-based configuration
+- Proper error handling and retry logic
+- Authentication method detection when applicable
+- Full xAPI 1.0.3 compliance
+- Comprehensive test coverage
 
 ### Improving The Documentation
 
 Contributions to documentation are welcome! Well-documented code is easier to understand and maintain. If you see areas where documentation can be improved, feel free to submit your suggestions.
 
 **Areas where documentation help is especially valuable:**
-- Setup guides for different LRS systems
+- Setup guides for different LRS plugins and systems
+- Plugin development tutorials and examples
 - Integration examples with various MCP clients
+- Authentication configuration guides (Basic Auth, OIDC, etc.)
 - Educational use case scenarios
-- Troubleshooting guides
+- Troubleshooting guides for plugin-specific issues
 - API documentation improvements
 
 ## Styleguides

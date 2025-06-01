@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY learnmcp_xapi/ ./learnmcp_xapi/
 COPY schemas/ ./schemas/
+COPY config/ ./config/
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash appuser
