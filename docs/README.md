@@ -16,6 +16,7 @@ The following modules have been updated and their documentation should be regene
   - `learnmcp_xapi.plugins.factory` - Plugin factory
   - `learnmcp_xapi.plugins.lrsql` - LRS SQL plugin
   - `learnmcp_xapi.plugins.ralph` - Ralph LRS plugin
+  - `learnmcp_xapi.plugins.veracity` - Veracity Learning LRS plugin
 
 - **Updated Core Modules**:
   - `learnmcp_xapi.config` - Now supports plugin configuration
@@ -45,9 +46,9 @@ pdoc --html --output-dir docs learnmcp_xapi
 The updated documentation should cover:
 
 1. **Plugin Architecture Overview**
-2. **Available LRS Plugins** (LRS SQL, Ralph)
+2. **Available LRS Plugins** (LRS SQL, Ralph, Veracity)
 3. **Plugin Configuration** (environment variables, config files)
-4. **Authentication Methods** (Basic Auth, OIDC)
+4. **Authentication Methods** (Basic Auth, OIDC, Access Keys)
 5. **Creating Custom Plugins**
 6. **Migration Guide** from legacy configuration
 7. **Docker Deployment** with different plugins
@@ -59,5 +60,6 @@ The documentation should include examples for:
 - LRS SQL plugin configuration
 - Ralph plugin with Basic Auth
 - Ralph plugin with OIDC
+- Veracity plugin with access keys
 - File-based configuration
 - Docker deployment scenarios

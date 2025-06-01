@@ -28,6 +28,11 @@ services:
       - RALPH_OIDC_CLIENT_ID=${RALPH_OIDC_CLIENT_ID}
       - RALPH_OIDC_CLIENT_SECRET=${RALPH_OIDC_CLIENT_SECRET}
       
+      # Veracity LRS Plugin Configuration (when LRS_PLUGIN=veracity)
+      - VERACITY_ENDPOINT=${VERACITY_ENDPOINT}
+      - VERACITY_USERNAME=${VERACITY_USERNAME}
+      - VERACITY_PASSWORD=${VERACITY_PASSWORD}
+      
       # Legacy Configuration (backward compatibility)
       - LRS_ENDPOINT=${LRS_ENDPOINT}
       - LRS_KEY=${LRS_KEY}

@@ -112,6 +112,7 @@ LearnMCP-xAPI follows a modular plugin architecture designed for educational tec
 
 - **LRS SQL**: SQLite-based lightweight LRS ideal for development and small deployments
 - **Ralph LRS**: Enterprise-grade LRS by France Université Numérique with support for Basic Auth and OIDC authentication
+- **Veracity Learning**: Cloud or self-hosted xAPI-compliant LRS with full 1.0.3 specification support and advanced analytics
 - **Plugin Architecture**: Designed for easy addition of new LRS implementations without modifying core code
 
 ## Getting Started
@@ -204,7 +205,7 @@ Edit the `.env` file with your LRS plugin selection and student identifier:
 
 ```bash
 # Required: Choose your LRS plugin
-LRS_PLUGIN=lrsql  # Options: lrsql, ralph
+LRS_PLUGIN=lrsql  # Options: lrsql, ralph, veracity
 
 # Required: Unique identifier for each student
 ACTOR_UUID=student-12345-67890-abcdef
@@ -222,6 +223,11 @@ RALPH_PASSWORD=your-password  # For Basic Auth
 # RALPH_OIDC_TOKEN_URL=http://keycloak:8080/auth/realms/test/protocol/openid-connect/token
 # RALPH_OIDC_CLIENT_ID=ralph
 # RALPH_OIDC_CLIENT_SECRET=secret
+
+# Veracity LRS Configuration (when LRS_PLUGIN=veracity)
+VERACITY_ENDPOINT=https://your-lrs.lrs.io  # Do NOT include /xapi at the end
+VERACITY_USERNAME=your-access-key-username
+VERACITY_PASSWORD=your-access-key-password
 ```
 
 #### Advanced Setup (Configuration Files)
@@ -299,6 +305,28 @@ RALPH_OIDC_CLIENT_SECRET=secret
 
 - **Authentication Methods**: Ralph plugin automatically detects and uses the appropriate authentication method based on configuration
 - **OIDC Support**: Full OpenID Connect support with automatic token management and refresh
+
+#### Veracity Learning (Cloud/Self-hosted)
+Veracity Learning is a full-featured xAPI 1.0.3 compliant LRS available as SaaS at lrs.io or self-hosted:
+
+```bash
+# Set plugin to veracity
+LRS_PLUGIN=veracity
+# IMPORTANT: Do NOT include /xapi in the endpoint URL
+VERACITY_ENDPOINT=https://your-lrs.lrs.io  
+VERACITY_USERNAME=your-access-key-username
+VERACITY_PASSWORD=your-access-key-password
+```
+
+- **Access Keys Required**: You must create access keys in your Veracity LRS management panel (not your lrs.io account credentials)
+- **Endpoint Format**: The plugin automatically handles the `/xapi` path - do not include it in your endpoint URL
+- **Full xAPI Support**: Supports all 1,200 requirements of the xAPI specification including digital signatures and attachments
+- **Analytics**: Built-in advanced analytics and visualization tools
+
+**⚠️ Important Veracity Setup Notes:**
+- Use access key credentials, not your lrs.io account username/password
+- Endpoint should be `https://your-lrs.lrs.io` (without `/xapi`)
+- Free accounts support up to 100MB storage and ~100,000 statements
 
 #### Custom LRS Integration
 The plugin architecture makes it easy to add support for new Learning Record Stores. See our [Plugin Development Guide](https://github.com/DavidLMS/learnmcp-xapi/wiki/Plugin-Development) for details.

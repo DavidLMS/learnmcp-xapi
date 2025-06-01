@@ -51,7 +51,20 @@ services:
     profiles:
       - ralph-oidc-example
 
-  # Example 4: Legacy configuration (backward compatibility)
+  # Example 4: LearnMCP-xAPI with Veracity LRS
+  learnmcp-xapi-veracity:
+    extends:
+      service: learnmcp-xapi
+    environment:
+      - LRS_PLUGIN=veracity
+      - ACTOR_UUID=student-veracity-12345
+      - VERACITY_ENDPOINT=https://your-lrs.lrs.io  # Replace with your actual LRS URL
+      - VERACITY_USERNAME=your-access-key-username
+      - VERACITY_PASSWORD=your-access-key-password
+    profiles:
+      - veracity-example
+
+  # Example 5: Legacy configuration (backward compatibility)
   learnmcp-xapi-legacy:
     extends:
       service: learnmcp-xapi
@@ -89,5 +102,8 @@ services:
 # 3. Start LearnMCP-xAPI with Ralph (OIDC):
 #    docker-compose --profile ralph-oidc-example --profile ralph-dev up
 #
-# 4. Start with legacy configuration:
+# 4. Start with Veracity LRS:
+#    docker-compose --profile veracity-example up
+#
+# 5. Start with legacy configuration:
 #    docker-compose --profile legacy-example --profile lrsql-dev up

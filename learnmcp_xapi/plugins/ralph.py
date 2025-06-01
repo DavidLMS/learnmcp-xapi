@@ -124,6 +124,14 @@ class RalphPlugin(LRSPlugin):
             auth_b64 = base64.b64encode(auth_bytes).decode("ascii")
             self.base_headers["Authorization"] = f"Basic {auth_b64}"
     
+    @property
+    def headers(self) -> Dict[str, str]:
+        """Get headers for Basic Auth (synchronous access)."""
+        if self.config.auth_method == AuthMethod.BASIC:
+            return self.base_headers.copy()
+        else:
+            raise AttributeError("headers property only available for Basic Auth. Use _get_headers() for OIDC.")
+    
     async def _get_oidc_token(self) -> str:
         """Get OIDC token, using cache if valid."""
         # Check cache

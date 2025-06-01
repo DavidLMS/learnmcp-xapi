@@ -213,7 +213,7 @@ class TestRalphConfig:
             password="pass"
         )
         
-        assert config.auth_method == AuthMethod.BASIC
+        assert config.auth_method.value == "basic"
         assert config.username == "user"
         assert config.password.get_secret_value() == "pass"
     
@@ -226,7 +226,7 @@ class TestRalphConfig:
             oidc_client_secret="secret"
         )
         
-        assert config.auth_method == AuthMethod.OIDC
+        assert config.auth_method.value == "oidc"
         assert config.oidc_token_url == "https://keycloak.com/token"
         assert config.oidc_client_id == "ralph"
     
@@ -235,9 +235,11 @@ class TestRalphConfig:
         # Should detect OIDC when oidc_token_url is present
         config1 = RalphConfig(
             endpoint="https://ralph.com",
-            oidc_token_url="https://keycloak.com/token"
+            oidc_token_url="https://keycloak.com/token",
+            oidc_client_id="client_id",
+            oidc_client_secret="client_secret"
         )
-        assert config1.auth_method == AuthMethod.OIDC
+        assert config1.auth_method.value == "oidc"
         
         # Should default to BASIC otherwise
         config2 = RalphConfig(
@@ -245,7 +247,7 @@ class TestRalphConfig:
             username="user",
             password="pass"
         )
-        assert config2.auth_method == AuthMethod.BASIC
+        assert config2.auth_method.value == "basic"
 
 
 class TestPluginIntegration:

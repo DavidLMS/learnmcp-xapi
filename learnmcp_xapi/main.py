@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 plugin_registry.register(LRSSQLPlugin)
 plugin_registry.register(RalphPlugin)
 
+# Import and register Veracity plugin
+from .plugins.veracity import VeracityPlugin
+plugin_registry.register(VeracityPlugin)
+
 # Log available plugins
 logger.info("Available LRS plugins:")
 for name, description in plugin_registry.list_plugins().items():

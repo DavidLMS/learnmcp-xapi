@@ -180,13 +180,16 @@ class TestFullCoverage:
         """Test that all modules can be imported without errors."""
         # Test core module imports (without triggering config validation)
         from learnmcp_xapi import config, verbs
-        from learnmcp_xapi.mcp import validator, lrs_client
+        from learnmcp_xapi.mcp import validator
+        from learnmcp_xapi.plugins import base, registry, factory
         
         # Verify module attributes exist
         assert hasattr(config, 'Config')
         assert hasattr(verbs, 'VERBS')
         assert hasattr(validator, 'validate_xapi_statement')
-        assert hasattr(lrs_client, 'LRSClient')
+        assert hasattr(base, 'LRSPlugin')
+        assert hasattr(registry, 'PluginRegistry')
+        assert hasattr(factory, 'PluginFactory')
     
     def test_error_handling_patterns(self):
         """Test consistent error handling patterns across modules."""
@@ -262,20 +265,20 @@ class TestFullCoverage:
     
     def test_xapi_compliance(self):
         """Test xAPI 1.0.3 compliance features."""
-        # Test that we use correct xAPI version
-        from learnmcp_xapi.mcp.lrs_client import LRSClient
+        # Test that plugins use correct xAPI version
+        from learnmcp_xapi.plugins.lrsql import LRSSQLPlugin
         
-        # Mock config for client creation
-        mock_config = MagicMock()
-        mock_config.LRS_ENDPOINT = "https://test.com"
-        mock_config.LRS_KEY = "key"
-        mock_config.LRS_SECRET = "secret"
+        # Test plugin with mock config
+        config = {
+            "endpoint": "https://test.com",
+            "key": "test_key",
+            "secret": "test_secret"
+        }
         
-        with patch('learnmcp_xapi.mcp.lrs_client.config', mock_config):
-            client = LRSClient()
-            assert client.headers["X-Experience-API-Version"] == "1.0.3"
-            assert "Basic " in client.headers["Authorization"]
-            assert client.headers["Content-Type"] == "application/json"
+        plugin = LRSSQLPlugin(config)
+        assert plugin.headers["X-Experience-API-Version"] == "1.0.3"
+        assert "Basic " in plugin.headers["Authorization"]
+        assert plugin.headers["Content-Type"] == "application/json"
         
         # Test xAPI statement structure compliance
         actor_structure = {
