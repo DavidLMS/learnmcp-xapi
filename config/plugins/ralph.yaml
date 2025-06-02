@@ -10,9 +10,9 @@ username: ${RALPH_USERNAME}
 password: ${RALPH_PASSWORD}
 
 # For OIDC:
-oidc_token_url: ${RALPH_OIDC_TOKEN_URL}
-oidc_client_id: ${RALPH_OIDC_CLIENT_ID}
-oidc_client_secret: ${RALPH_OIDC_CLIENT_SECRET}
+oidc_token_url: ${RALPH_OIDC_TOKEN_URL:-}
+oidc_client_id: ${RALPH_OIDC_CLIENT_ID:-}
+oidc_client_secret: ${RALPH_OIDC_CLIENT_SECRET:-}
 oidc_scope: openid
 
 # Optional settings

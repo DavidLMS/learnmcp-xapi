@@ -188,12 +188,17 @@ class LRSPlugin(ABC):
         elif isinstance(config, list):
             return [LRSPlugin._substitute_env_vars(item) for item in config]
         elif isinstance(config, str):
-            # Replace ${VAR} or $VAR with environment variable value
-            pattern = re.compile(r'\$\{([^}]+)\}|\$([A-Z_][A-Z0-9_]*)')
+            # Replace ${VAR:-default} or ${VAR} or $VAR with environment variable value
+            pattern = re.compile(r'\$\{([^}:]+)(?::(-)?([^}]*))?\}|\$([A-Z_][A-Z0-9_]*)')
             
             def replacer(match):
-                var_name = match.group(1) or match.group(2)
-                return os.getenv(var_name, match.group(0))
+                if match.group(1):  # ${VAR} or ${VAR:-default}
+                    var_name = match.group(1)
+                    default_value = match.group(3) if match.group(3) is not None else match.group(0)
+                    return os.getenv(var_name, default_value)
+                else:  # $VAR
+                    var_name = match.group(4)
+                    return os.getenv(var_name, match.group(0))
             
             return pattern.sub(replacer, config)
         else:

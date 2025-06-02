@@ -4,11 +4,11 @@ import base64
 import logging
 import asyncio
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 import httpx
-from pydantic import BaseModel, Field, SecretStr, field_validator
+from pydantic import BaseModel, Field, SecretStr, model_validator
 from fastapi import HTTPException, status
 
 from .base import LRSPlugin, LRSPluginConfig
@@ -37,42 +37,45 @@ class RalphConfig(LRSPluginConfig):
     # Auto-detected auth method
     auth_method: Optional[AuthMethod] = None
     
-    @field_validator('auth_method', mode='before')
-    @classmethod
-    def detect_auth_method(cls, v, info):
+    @model_validator(mode='after')
+    def detect_auth_method(self):
         """Auto-detect authentication method based on provided credentials."""
-        if v:
-            return v
+        if self.auth_method is not None:
+            return self
         
-        values = info.data if hasattr(info, 'data') else {}
+        # Check for OIDC configuration (must have non-empty values and not placeholders)
+        has_oidc_url = (self.oidc_token_url and 
+                       self.oidc_token_url.strip() and 
+                       not self.oidc_token_url.startswith('${'))
+        has_oidc_client = (self.oidc_client_id and 
+                          self.oidc_client_id.strip() and 
+                          not self.oidc_client_id.startswith('${'))
         
-        # Check for OIDC configuration
-        if values.get('oidc_token_url') or values.get('oidc_client_id'):
-            return AuthMethod.OIDC
+        if has_oidc_url or has_oidc_client:
+            self.auth_method = AuthMethod.OIDC
+        else:
+            # Default to basic auth
+            self.auth_method = AuthMethod.BASIC
         
-        # Default to basic auth
-        return AuthMethod.BASIC
+        return self
     
-    @field_validator('username')
-    @classmethod
-    def validate_basic_auth(cls, v, info):
-        """Validate basic auth configuration."""
-        values = info.data if hasattr(info, 'data') else {}
-        if values.get('auth_method') == AuthMethod.BASIC and not v:
-            raise ValueError("Username required for basic authentication")
-        return v
-    
-    @field_validator('oidc_token_url')
-    @classmethod
-    def validate_oidc_config(cls, v, info):
-        """Validate OIDC configuration."""
-        values = info.data if hasattr(info, 'data') else {}
-        if values.get('auth_method') == AuthMethod.OIDC:
-            if not v:
+    @model_validator(mode='after')
+    def validate_auth_config(self):
+        """Validate authentication configuration."""
+        if self.auth_method == AuthMethod.BASIC:
+            if not self.username:
+                raise ValueError("Username required for basic authentication")
+            if not self.password:
+                raise ValueError("Password required for basic authentication")
+        elif self.auth_method == AuthMethod.OIDC:
+            if not self.oidc_token_url:
                 raise ValueError("OIDC token URL required for OIDC authentication")
-            if not values.get('oidc_client_id'):
+            if not self.oidc_client_id:
                 raise ValueError("OIDC client ID required for OIDC authentication")
-        return v
+            if not self.oidc_client_secret:
+                raise ValueError("OIDC client secret required for OIDC authentication")
+        
+        return self
     
     class Config:
         env_prefix = "RALPH_"
@@ -87,6 +90,9 @@ class RalphPlugin(LRSPlugin):
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
+        
+        logger.info(f"Ralph plugin initialized with auth_method: {self.config.auth_method}")
+        logger.info(f"Ralph plugin config: endpoint={self.config.endpoint}, username={self.config.username}")
         
         # Initialize HTTP client based on auth method
         self.client = httpx.AsyncClient(
@@ -136,7 +142,7 @@ class RalphPlugin(LRSPlugin):
         """Get OIDC token, using cache if valid."""
         # Check cache
         if self._token_cache and self._token_expires_at:
-            if datetime.utcnow() < self._token_expires_at:
+            if datetime.now(timezone.utc) < self._token_expires_at:
                 return self._token_cache
         
         # Request new token
@@ -159,7 +165,7 @@ class RalphPlugin(LRSPlugin):
         
         # Calculate expiration (with 30 second buffer)
         expires_in = token_response.get("expires_in", 3600)
-        self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in - 30)
+        self._token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in - 30)
         
         logger.info("Obtained new OIDC token")
         return self._token_cache
@@ -181,15 +187,24 @@ class RalphPlugin(LRSPlugin):
         
         for attempt in range(max_attempts):
             try:
-                # Get fresh headers (may refresh OIDC token)
+                # For OIDC, get fresh headers (may refresh token)
+                # For Basic Auth, use the headers already in base_headers
                 if 'headers' not in kwargs:
-                    kwargs['headers'] = await self._get_headers()
+                    if self.config.auth_method == AuthMethod.OIDC:
+                        kwargs['headers'] = await self._get_headers()
+                    else:
+                        kwargs['headers'] = self.base_headers.copy()
                 
                 response = await request_func(*args, **kwargs)
                 response.raise_for_status()
                 return response
                 
             except httpx.HTTPStatusError as e:
+                logger.error(f"Ralph HTTP error on attempt {attempt + 1}: {e.response.status_code}")
+                logger.error(f"Ralph response text: {e.response.text}")
+                logger.error(f"Ralph request URL: {e.request.url}")
+                logger.error(f"Ralph request headers: {dict(e.request.headers)}")
+                
                 # Handle 401 for OIDC - clear token cache and retry
                 if e.response.status_code == 401 and self.config.auth_method == AuthMethod.OIDC:
                     logger.warning("Got 401, clearing OIDC token cache")
@@ -204,7 +219,7 @@ class RalphPlugin(LRSPlugin):
                     logger.error(f"Ralph returned error {e.response.status_code}: {e.response.text}")
                     raise HTTPException(
                         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        detail="Ralph LRS unavailable"
+                        detail=f"Ralph LRS unavailable - HTTP {e.response.status_code}: {e.response.text}"
                     )
                 else:
                     delay = backoff_delays[min(attempt, len(backoff_delays) - 1)]
@@ -231,22 +246,31 @@ class RalphPlugin(LRSPlugin):
     
     async def post_statement(self, statement: Dict[str, Any]) -> Dict[str, Any]:
         """Post statement to Ralph LRS."""
+        logger.info(f"Ralph post_statement called")
+        logger.info(f"Statement to post: {statement}")
+        
         # Ralph uses /xAPI/statements/ (note the capital X and trailing slash)
-        response = await self._retry_request(
-            self.client.post, "/xAPI/statements/", json=statement
-        )
-        
-        result = response.json()
-        
-        # Ralph returns array of statement IDs
-        if isinstance(result, list):
-            statement_id = result[0] if result else "unknown"
-            logger.info(f"Statement posted to Ralph, ID: {statement_id}")
-            return {"id": statement_id, "stored": True}
-        else:
-            # Fallback for unexpected response format
-            logger.info(f"Statement posted to Ralph, response: {result}")
-            return {"id": str(result), "stored": True}
+        try:
+            response = await self._retry_request(
+                self.client.post, "/xAPI/statements/", json=statement
+            )
+            
+            result = response.json()
+            logger.info(f"Ralph post response: {result}")
+            
+            # Ralph returns array of statement IDs
+            if isinstance(result, list):
+                statement_id = result[0] if result else "unknown"
+                logger.info(f"Statement posted to Ralph, ID: {statement_id}")
+                return {"id": statement_id, "stored": True}
+            else:
+                # Fallback for unexpected response format
+                logger.info(f"Statement posted to Ralph, response: {result}")
+                return {"id": str(result), "stored": True}
+        except Exception as e:
+            logger.error(f"Ralph post_statement failed: {e}")
+            logger.error(f"Exception type: {type(e)}")
+            raise
     
     async def get_statements(
         self,
@@ -258,6 +282,10 @@ class RalphPlugin(LRSPlugin):
         limit: int = 50
     ) -> List[Dict[str, Any]]:
         """Retrieve statements from Ralph LRS."""
+        logger.info(f"Ralph get_statements called with actor_uuid={actor_uuid}, limit={limit}")
+        logger.info(f"Ralph endpoint: {self.config.endpoint}")
+        logger.info(f"Ralph auth method: {self.config.auth_method}")
+        
         params = {
             "agent": f'{{"account":{{"homePage":"https://learnmcp.example.com","name":"{actor_uuid}"}}}}',
             "limit": min(limit, 50)
@@ -272,18 +300,25 @@ class RalphPlugin(LRSPlugin):
         if until:
             params["until"] = until.isoformat()
         
-        response = await self._retry_request(
-            self.client.get, "/xAPI/statements/", params=params
-        )
+        logger.info(f"Ralph request params: {params}")
         
-        result = response.json()
-        statements = result.get("statements", [])
-        
-        # Sort by timestamp descending
-        statements.sort(key=lambda s: s.get("timestamp", ""), reverse=True)
-        
-        logger.info(f"Retrieved {len(statements)} statements from Ralph")
-        return statements
+        try:
+            response = await self._retry_request(
+                self.client.get, "/xAPI/statements/", params=params
+            )
+            
+            result = response.json()
+            statements = result.get("statements", [])
+            
+            # Sort by timestamp descending
+            statements.sort(key=lambda s: s.get("timestamp", ""), reverse=True)
+            
+            logger.info(f"Retrieved {len(statements)} statements from Ralph")
+            return statements
+        except Exception as e:
+            logger.error(f"Ralph get_statements failed: {e}")
+            logger.error(f"Exception type: {type(e)}")
+            raise
     
     async def close(self) -> None:
         """Close HTTP client."""
