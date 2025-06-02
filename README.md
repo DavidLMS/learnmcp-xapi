@@ -170,25 +170,6 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv pip install -r requirements.txt
 ```
 
-#### Option 4: Use Docker
-
-```bash
-# Clone the repository
-git clone https://github.com/DavidLMS/learnmcp-xapi.git
-cd learnmcp-xapi
-
-# Build the Docker image
-docker build -t learnmcp-xapi:1.0 .
-
-# Run with environment variables
-docker run -p 8000:8000 \
-  -e LRS_ENDPOINT=http://localhost:8080 \
-  -e LRS_KEY=your-lrs-key \
-  -e LRS_SECRET=your-lrs-secret \
-  -e ACTOR_UUID=student-unique-id-here \
-  learnmcp-xapi:1.0
-```
-
 ### Configuration
 
 LearnMCP-xAPI uses a flexible configuration system supporting both environment variables and configuration files.
@@ -225,7 +206,8 @@ RALPH_PASSWORD=your-password  # For Basic Auth
 # RALPH_OIDC_CLIENT_SECRET=secret
 
 # Veracity LRS Configuration (when LRS_PLUGIN=veracity)
-VERACITY_ENDPOINT=https://your-lrs.lrs.io  # Do NOT include /xapi at the end
+VERACITY_ENDPOINT=https://your-lrs.lrs.io
+VERACITY_LRS_NAME=mylrs
 VERACITY_USERNAME=your-access-key-username
 VERACITY_PASSWORD=your-access-key-password
 ```
@@ -271,65 +253,10 @@ You should see a response indicating the server is starting.
 LearnMCP-xAPI supports multiple Learning Record Stores through its plugin architecture, making it easy to integrate with your existing educational technology infrastructure.
 
 ### Learning Record Store Integration
-
-#### LRS SQL (Default)
-LRS SQL is a lightweight, SQLite-based Learning Record Store perfect for development and small deployments:
-
-```bash
-# Set plugin to lrsql (default)
-LRS_PLUGIN=lrsql
-LRSQL_ENDPOINT=http://localhost:8080
-LRSQL_KEY=your-api-key
-LRSQL_SECRET=your-api-secret
-```
-
-- **[LRS SQL Setup Guide](https://github.com/DavidLMS/learnmcp-xapi/wiki/SQL-LRS-Setup)** - Complete setup guide for development environments
-
-#### Ralph LRS (Enterprise)
-Ralph LRS is an enterprise-grade Learning Record Store developed by France Université Numérique:
-
-```bash
-# Set plugin to ralph
-LRS_PLUGIN=ralph
-RALPH_ENDPOINT=http://localhost:8100
-
-# Basic Authentication
-RALPH_USERNAME=your-username
-RALPH_PASSWORD=your-password
-
-# OR OIDC Authentication (preferred for production)
-RALPH_OIDC_TOKEN_URL=http://keycloak:8080/auth/realms/test/protocol/openid-connect/token
-RALPH_OIDC_CLIENT_ID=ralph
-RALPH_OIDC_CLIENT_SECRET=secret
-```
-
-- **Authentication Methods**: Ralph plugin automatically detects and uses the appropriate authentication method based on configuration
-- **OIDC Support**: Full OpenID Connect support with automatic token management and refresh
-
-#### Veracity Learning (Cloud/Self-hosted)
-Veracity Learning is a full-featured xAPI 1.0.3 compliant LRS available as SaaS at lrs.io or self-hosted:
-
-```bash
-# Set plugin to veracity
-LRS_PLUGIN=veracity
-# IMPORTANT: Do NOT include /xapi in the endpoint URL
-VERACITY_ENDPOINT=https://your-lrs.lrs.io  
-VERACITY_USERNAME=your-access-key-username
-VERACITY_PASSWORD=your-access-key-password
-```
-
-- **Access Keys Required**: You must create access keys in your Veracity LRS management panel (not your lrs.io account credentials)
-- **Endpoint Format**: The plugin automatically handles the `/xapi` path - do not include it in your endpoint URL
-- **Full xAPI Support**: Supports all 1,200 requirements of the xAPI specification including digital signatures and attachments
-- **Analytics**: Built-in advanced analytics and visualization tools
-
-**⚠️ Important Veracity Setup Notes:**
-- Use access key credentials, not your lrs.io account username/password
-- Endpoint should be `https://your-lrs.lrs.io` (without `/xapi`)
-- Free accounts support up to 100MB storage and ~100,000 statements
-
-#### Custom LRS Integration
-The plugin architecture makes it easy to add support for new Learning Record Stores. See our [Plugin Development Guide](https://github.com/DavidLMS/learnmcp-xapi/wiki/Plugin-Development) for details.
+- **[LRS SQL Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/LRS-SQL-Setup)** - Complete guide for setting up LRS SQL as your development LRS.
+- **[Ralph LRS Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/Ralph-LRS-Setup)** - Enterprise LRS integration with Basic Auth and OIDC support.
+- **[Veracity Learning Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/Veracity-LRS-Setup)** - Cloud and self-hosted LRS with advanced analytics.
+- **[Custom LRS Integration](https://github.com/DavidLMS/learnmcp-xapi/wiki/Plugin-Development)** - Guide for adding support for new Learning Record Stores.
 
 ### AI Client Integration
 - **[Claude Desktop Setup](https://github.com/DavidLMS/learnmcp-xapi/wiki/Claude-Desktop-Setup)** - Step-by-step guide for connecting Claude Desktop as your AI learning companion
