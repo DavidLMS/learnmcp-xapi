@@ -20,6 +20,7 @@ class VeracityConfig(LRSPluginConfig):
     """Configuration model for Veracity LRS plugin."""
     username: str = Field(..., description="Access key username for authentication")
     password: SecretStr = Field(..., description="Access key password for authentication")
+    lrs_name: Optional[str] = Field(None, description="Specific LRS name for multi-tenant setups")
     
     @field_validator('endpoint')
     @classmethod
@@ -72,6 +73,8 @@ class VeracityPlugin(LRSPlugin):
         )
         
         logger.info(f"Initialized Veracity plugin with endpoint: {self.config.endpoint}")
+        if self.config.lrs_name:
+            logger.info(f"Using LRS name: {self.config.lrs_name}")
     
     @classmethod
     def get_config_model(cls) -> type[BaseModel]:
@@ -81,6 +84,22 @@ class VeracityPlugin(LRSPlugin):
         """Validate Veracity specific configuration."""
         if not self.config.username or not self.config.password:
             raise ValueError("Veracity requires 'username' and 'password' (access key credentials)")
+    
+    def _build_xapi_path(self, endpoint: str) -> str:
+        """Build the complete xAPI path including LRS name if specified.
+        
+        Args:
+            endpoint: The xAPI endpoint (e.g., 'statements', 'activities')
+            
+        Returns:
+            Complete path for the request
+        """
+        if self.config.lrs_name:
+            # Multi-tenant setup: /lrs_name/xapi/endpoint
+            return f"/{self.config.lrs_name.lower()}/xapi/{endpoint}"
+        else:
+            # Single-tenant setup: /xapi/endpoint
+            return f"/xapi/{endpoint}"
     
     async def _retry_request(self, request_func, *args, **kwargs):
         """Execute request with exponential backoff retry logic."""
@@ -132,9 +151,10 @@ class VeracityPlugin(LRSPlugin):
     
     async def post_statement(self, statement: Dict[str, Any]) -> Dict[str, Any]:
         """Post statement to Veracity LRS."""
-        # Veracity uses /xapi/statements (note: we add /xapi here)
+        # Build the complete path including LRS name if specified
+        path = self._build_xapi_path("statements")
         response = await self._retry_request(
-            self.client.post, "/xapi/statements", json=statement
+            self.client.post, path, json=statement
         )
         
         result = response.json()
@@ -178,8 +198,9 @@ class VeracityPlugin(LRSPlugin):
         if until:
             params["until"] = until.isoformat()
         
+        path = self._build_xapi_path("statements")
         response = await self._retry_request(
-            self.client.get, "/xapi/statements", params=params
+            self.client.get, path, params=params
         )
         
         result = response.json()

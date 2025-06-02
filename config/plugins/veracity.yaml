@@ -2,10 +2,13 @@
 # This file is optional - all values can be set via environment variables
 
 # Veracity LRS endpoint URL
-# Note: Do NOT include /xapi at the end - it will be added automatically
-# ✅ Correct: https://your-lrs.lrs.io
-# ❌ Wrong:   https://your-lrs.lrs.io/xapi
 endpoint: ${VERACITY_ENDPOINT:-https://your-lrs.lrs.io}
+
+# LRS Name for multi-tenant Veracity setups (optional)
+# If specified, the path will be: /lrs_name/xapi/statements
+# If not specified, the path will be: /xapi/statements
+# Example: For MYLRS LRS, set this to "mylrs"
+lrs_name: ${VERACITY_LRS_NAME:-}
 
 # Access Key Credentials (from Veracity LRS management interface)
 # These are NOT your lrs.io account credentials
