@@ -7,6 +7,9 @@
   <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-yellow.svg?longCache=true" alt="MIT License">
     </a>
+  <a href="https://deepwiki.com/DavidLMS/learnmcp-xapi">
+      <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+    </a>
 </p>
 
 # LearnMCP-xAPI
